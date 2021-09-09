@@ -19,7 +19,7 @@ async function updateAutotask(autotaskId, file) {
 }
 
 async function run() {
-  await updateAutotask(process.env.RINKEBY_AUTOTASK_ID, './dist/autotask-bundle.js')
+  await updateAutotask(process.env.RINKEBY_AUTOTASK_ID, './dist/handler-bundle.js')
 }
 
 run()

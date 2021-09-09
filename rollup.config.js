@@ -14,9 +14,9 @@ const baseConfig = {
 export default [
   {
     ...baseConfig,
-    input: 'src/autotask.js',
+    input: 'src/handler.js',
     output: {
-      file: 'dist/autotask-bundle.js',
+      file: 'dist/handler-bundle.js',
       format: 'cjs',
       exports: 'named'
     }

@@ -19,7 +19,7 @@
   "scripts": {
     "build": "rollup -c rollup.config.js",
     "update": "yarn build && ./scripts/updateTask.js",
-    "start": "/usr/bin/env node ./src/autotask.js"
+    "start": "/usr/bin/env node ./src/cli.js"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^15.1.0",
