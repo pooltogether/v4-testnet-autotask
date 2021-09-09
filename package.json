@@ -1,0 +1,31 @@
+{
+  "name": "defender-autotask-reward",
+  "description": "An OpenZeppelin Defender Autotask that rewards periodic prize strategies",
+  "version": "0.2.0",
+  "main": "src/cli.js",
+  "author": "Brendan Asselstine <brendan@pooltogether.com>",
+  "license": "MIT",
+  "dependencies": {
+    "@ethersproject/abstract-provider": "^5.1.0",
+    "@ethersproject/abstract-signer": "^5.1.0",
+    "@pooltogether/current-pool-data": "3.6.0",
+    "@pooltogether/pooltogether-contracts": "3.1.0",
+    "commander": "^6.1.0",
+    "defender-autotask-client": "^1.5.1",
+    "defender-relay-client": "^0.2.4",
+    "ethers": "^5.0.14",
+    "@pooltogether/v4-rinkeby": "github://pooltogether/v4-rinkeby"
+  },
+  "scripts": {
+    "build": "rollup -c rollup.config.js",
+    "update": "yarn build && ./scripts/updateTask.js",
+    "start": "/usr/bin/env node ./src/autotask.js"
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^15.1.0",
+    "@rollup/plugin-json": "^4.1.0",
+    "@rollup/plugin-node-resolve": "^9.0.0",
+    "@rollup/plugin-replace": "^2.3.4",
+    "rollup": "^2.28.1"
+  }
+}
