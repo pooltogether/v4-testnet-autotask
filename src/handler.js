@@ -99,62 +99,41 @@ async function handler(event) {
   const mumbaiPrizeTickets = await ticketMumbai.balanceOf(claimableDrawMumbai.address)
   const totalEligibleTickets = (await ticketMumbai.totalSupply()).add(await ticketRinkeby.totalSupply()).sub(rinkebyPrizeTickets).sub(mumbaiPrizeTickets)
   
-  // catch up the claimable draws.  This isn't really accurate but who cares.
-  for (let drawId = 0; drawId <= lastDrawId; drawId++) {
-    const oddSpaces = []
-    for (let bitRange = 1; bitRange < 4; bitRange++) {
-      for (let cardinality = 4; cardinality < 8; cardinality++) {
-        let numberOfPicks = (2**bitRange)**cardinality;
-        // console.log(`Draw ${drawId} number of picks: ${numberOfPicks}`)
-        const pickCost = totalEligibleTickets.div(numberOfPicks)
-        // console.log(`Draw ${drawId}, bitRange: ${bitRange}, cardinality: ${cardinality} pickCost: ${pickCost}`)
-        if (pickCost.gt(ethers.constants.WeiPerEther)) { // ignore absurd values
-          oddSpaces.push({
-            pickCost, bitRange, cardinality
-          })
-        }
-      }
-    }
-  
-    oddSpaces.sort((a, b) => a.pickCost - b.pickCost)
-  
-    const prize = ethers.utils.parseEther('10000')
 
-    const best = oddSpaces[0]
+  const prize = ethers.utils.parseEther('10000')
+  const drawId = nextDrawId -1
 
-    if (best) {
-      console.log("Best fit: ", best)
   
-      const drawSettings = {
-        bitRangeSize: best.bitRange,
-        matchCardinality: best.cardinality,
-        pickCost: best.pickCost,
-        distributions: [toWei('0.5'), toWei('0.1'), toWei('0.2'), toWei('0.2')],
-        prize
-      }
-  
-      console.log('Propagating Draw Settings: ', drawSettings)
-    
-      const rinkebyTx = await drawCalculatorRinkeby.populateTransaction.setDrawSettings(drawId, drawSettings)
-      const rinkebyTxRes = await rinkebyRelayer.sendTransaction({
-        data: rinkebyTx.data,
-        to: rinkebyTx.to,
-        speed: 'fast',
-        gasLimit: 500000,
-      });
-      console.log(`Set Draw Settings on rinkeby: `, rinkebyTxRes)
-  
-      const mumbaiTx = await drawCalculatorMumbai.populateTransaction.setDrawSettings(drawId, drawSettings)
-      const mumbaiTxRes = await mumbaiRelayer.sendTransaction({
-        data: mumbaiTx.data,
-        to: mumbaiTx.to,
-        speed: 'fast',
-        gasLimit: 500000,
-      });
-      console.log(`Set Draw Settings on mumbai: `, mumbaiTxRes)
-    }
+  const drawSettings = {
+    bitRangeSize: ethers.BigNumber.from(3),
+    matchCardinality: ethers.BigNumber.from(4),
+    pickCost : ethers.utils.parseEther("10"),
+    distributions: [toWei('0.5'), toWei('0.1'), toWei('0.2'), toWei('0.2')],
+    prize
   }
 
+  console.log('Propagating Draw Settings: ', drawSettings)
+
+  const rinkebyTx = await drawCalculatorRinkeby.populateTransaction.setDrawSettings(drawId, drawSettings)
+  const rinkebyTxRes = await rinkebyRelayer.sendTransaction({
+    data: rinkebyTx.data,
+    to: rinkebyTx.to,
+    speed: 'fast',
+    gasLimit: 500000,
+  });
+  console.log(`Set Draw Settings on rinkeby for drawId ${drawId}: `, rinkebyTxRes)
+
+  const mumbaiTx = await drawCalculatorMumbai.populateTransaction.setDrawSettings(drawId, drawSettings)
+  const mumbaiTxRes = await mumbaiRelayer.sendTransaction({
+    data: mumbaiTx.data,
+    to: mumbaiTx.to,
+    speed: 'fast',
+    gasLimit: 500000,
+  });
+  console.log(`Set Draw Settings on mumbai: for drawId ${drawId} `, mumbaiTxRes)
+    
+  
+  console.log("handler complete!")
 }
 
 exports.handler = handler
