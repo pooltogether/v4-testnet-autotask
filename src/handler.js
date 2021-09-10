@@ -36,7 +36,7 @@ async function handler(event) {
   const claimableDrawRinkeby = new ethers.Contract(ClaimableDrawRinkeby.address, ClaimableDrawRinkeby.abi, ethereumProvider)
   const claimableDrawMumbai = new ethers.Contract(ClaimableDrawMumbai.address, ClaimableDrawMumbai.abi, polygonProvider)
 
-  if (await drawBeacon.canStartRNGRequest()) {
+  if (await drawBeacon.canStartDraw()) {
     console.log("Starting draw...")
     const tx = await drawBeacon.populateTransaction.startDraw()
     const txRes = await rinkebyRelayer.sendTransaction({
@@ -49,7 +49,7 @@ async function handler(event) {
   }
 
   let completedDraw = false
-  if (await drawBeacon.canCompleteRNGRequest()) {
+  if (await drawBeacon.canCompleteDraw()) {
     console.log("Completing draw...")
     const tx = await drawBeacon.populateTransaction.completeDraw()
     const txRes = await rinkebyRelayer.sendTransaction({
@@ -81,6 +81,7 @@ async function handler(event) {
   console.log(`Last mumbai draw id: ${lastMumbaiDrawId}`)
 
   for (let drawId = lastMumbaiDrawId + 1; drawId <= lastDrawId; drawId++) {
+    console.log("getting drawId ", drawId)
     const rinkebyDraw = await drawHistoryRinkeby.getDraw(drawId)
     console.log(`Propagating Draw ${drawId} to Mumbai...`)
     const tx = await drawHistoryMumbai.populateTransaction.pushDraw(rinkebyDraw)
