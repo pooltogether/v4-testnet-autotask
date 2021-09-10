@@ -14,7 +14,7 @@
     "defender-autotask-client": "^1.5.1",
     "defender-relay-client": "^0.2.4",
     "ethers": "^5.0.14",
-    "@pooltogether/v4-rinkeby": "github://pooltogether/v4-rinkeby"
+    "@pooltogether/v4-rinkeby": "github://pooltogether/v4-rinkeby#8029ea6a42adbb58525ece407ee3ee07a0777ac5"
   },
   "scripts": {
     "build": "rollup -c rollup.config.js",
