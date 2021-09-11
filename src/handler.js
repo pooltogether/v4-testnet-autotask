@@ -102,27 +102,33 @@ async function handler(event) {
     prize: ethers.utils.parseEther('10000')
   }
 
-  // just do last four.  kinda hacky
-  for (let drawId = lastRinkebyDraw.drawId > 4 ? lastRinkebyDraw.drawId - 4 : lastRinkebyDraw.drawId; drawId < lastRinkebyDraw.drawId; drawId++) {
-    console.log('Propagating Draw Settings: ', drawSettings)
+  const lastDrawCalcRinkeby = await claimableDrawRinkeby.drawCalculatorAddresses(lastRinkebyDraw.drawId)
+  const lastDrawCalcMumbai = await claimableDrawMumbai.drawCalculatorAddresses(lastRinkebyDraw.drawId)
 
-    const rinkebyTx = await drawCalculatorRinkeby.populateTransaction.setDrawSettings(drawId, drawSettings)
+  if (lastDrawCalcRinkeby == ethers.constants.AddressZero) {
+    console.log(`Propagating Draw Settings for ${lastRinkebyDraw.drawId} to Rinkeby: `, drawSettings)
+
+    const rinkebyTx = await drawCalculatorRinkeby.populateTransaction.setDrawSettings(lastRinkebyDraw.drawId, drawSettings)
     const rinkebyTxRes = await rinkebyRelayer.sendTransaction({
       data: rinkebyTx.data,
       to: rinkebyTx.to,
       speed: 'fast',
       gasLimit: 500000,
     });
-    console.log(`Set Draw Settings on rinkeby for drawId ${drawId}: `, rinkebyTxRes)
+    console.log(`Set Draw Settings on rinkeby for drawId ${lastRinkebyDraw.drawId}: `, rinkebyTxRes)
+  }
   
-    const mumbaiTx = await drawCalculatorMumbai.populateTransaction.setDrawSettings(drawId, drawSettings)
+  if (lastDrawCalcMumbai == ethers.constants.AddressZero) {
+    console.log(`Propagating Draw Settings for ${lastRinkebyDraw.drawId} to Mumbai: `, drawSettings)
+
+    const mumbaiTx = await drawCalculatorMumbai.populateTransaction.setDrawSettings(lastRinkebyDraw.drawId, drawSettings)
     const mumbaiTxRes = await mumbaiRelayer.sendTransaction({
       data: mumbaiTx.data,
       to: mumbaiTx.to,
       speed: 'fast',
       gasLimit: 500000,
     });
-    console.log(`Set Draw Settings on mumbai: for drawId ${drawId} `, mumbaiTxRes)
+    console.log(`Set Draw Settings on mumbai: for drawId ${lastRinkebyDraw.drawId} `, mumbaiTxRes)
   }
   
   console.log("handler complete!")
