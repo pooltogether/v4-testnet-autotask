@@ -36,8 +36,10 @@ async function handler(event) {
   const claimableDrawRinkeby = new ethers.Contract(ClaimableDrawRinkeby.address, ClaimableDrawRinkeby.abi, ethereumProvider)
   const claimableDrawMumbai = new ethers.Contract(ClaimableDrawMumbai.address, ClaimableDrawMumbai.abi, polygonProvider)
 
+  const nextDrawId = await drawBeacon.nextDrawId()
+
   if (await drawBeacon.canStartDraw()) {
-    console.log("Starting draw...")
+    console.log(`Starting draw ${nextDrawId}...`)
     const tx = await drawBeacon.populateTransaction.startDraw()
     const txRes = await rinkebyRelayer.sendTransaction({
       data: tx.data,
@@ -45,12 +47,12 @@ async function handler(event) {
       speed: 'fast',
       gasLimit: 500000,
     });
-    console.log(`Started Draw: `, txRes)
+    console.log(`Started Draw ${nextDrawId}: `, txRes)
   }
 
   let completedDraw = false
   if (await drawBeacon.canCompleteDraw()) {
-    console.log("Completing draw...")
+    console.log(`Completing draw ${nextDrawId}...`)
     const tx = await drawBeacon.populateTransaction.completeDraw()
     const txRes = await rinkebyRelayer.sendTransaction({
       data: tx.data,
@@ -58,7 +60,7 @@ async function handler(event) {
       speed: 'fast',
       gasLimit: 500000,
     });
-    console.log(`Completed Draw: `, txRes)
+    console.log(`Completed Draw ${nextDrawId}: `, txRes)
     completedDraw = true
   }
 
