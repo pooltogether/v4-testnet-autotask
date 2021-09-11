@@ -87,7 +87,7 @@ async function handler(event) {
   const totalEligibleTickets = (await ticketMumbai.totalSupply()).add(await ticketRinkeby.totalSupply()).sub(rinkebyPrizeTickets).sub(mumbaiPrizeTickets)
   
   const bitRange = 3
-  const cardinality = 5
+  const cardinality = 6
   const totalPicks = (2**bitRange)**cardinality
   
   const ticketsPerPick = totalEligibleTickets.div(totalPicks)
@@ -96,7 +96,7 @@ async function handler(event) {
     bitRangeSize: bitRange,
     matchCardinality: cardinality,
     pickCost : ticketsPerPick,
-    distributions: [toWei('0.5'), toWei('0.1'), toWei('0.2'), toWei('0.2')],
+    distributions: [toWei('0.5'), toWei('0.1'), toWei('0.2')],
     prize: ethers.utils.parseEther('10000')
   }
 
