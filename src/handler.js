@@ -89,7 +89,7 @@ async function handler(event) {
   const totalEligibleTickets = (await ticketMumbai.totalSupply()).add(await ticketRinkeby.totalSupply()).sub(rinkebyPrizeTickets).sub(mumbaiPrizeTickets)
   
   const bitRange = 3
-  const cardinality = 8
+  const cardinality = 6
   const totalPicks = (2**bitRange)**cardinality
   
   const ticketsPerPick = totalEligibleTickets.div(totalPicks)
