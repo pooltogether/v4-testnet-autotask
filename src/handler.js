@@ -120,12 +120,12 @@ async function handler(event) {
 
   const rinkebyDrawSettings = {
     ...drawSettings,
-    numberOfPicks: rinkebyPicks
+    numberOfPicks: 1000
   }
 
   const mumbaiDrawSettings = {
     ...drawSettings,
-    numberOfPicks: mumbaiPicks
+    numberOfPicks: 1000
   }
 
   let rinkebyNewestDraw = { drawId: 0 }
@@ -140,14 +140,14 @@ async function handler(event) {
     // console.warn(e)
   }
 
-  console.log(`ATLKING TO: ${drawSettingsTimelockTriggerRinkeby.address}`)
-  for (let drawId = rinkebyOldestDraw.drawId; drawId <= rinkebyNewestDraw.drawId; drawId++) {
+  console.log(`TALKING TO: ${drawSettingsTimelockTriggerRinkeby.address}`)
+  for (let drawId = Math.max(1, rinkebyOldestDraw.drawId); drawId <= rinkebyNewestDraw.drawId; drawId++) {
     console.log(`Checking Rinkeby draw ${drawId}`)
     try {
       await tsunamiDrawSettingsHistoryRinkeby.getDrawSetting(drawId)
       console.log(`Rinkeby Draw Settings exist for ${drawId}`)
     } catch (e) {
-      console.log(`ATLKING TO: ${drawSettingsTimelockTriggerRinkeby.address}`)
+      console.log(`TALKING TO: ${drawSettingsTimelockTriggerRinkeby.address}`)
       console.log("pushing draw to drawSettingsTimelockTriggerRinkeby", drawId)
       // console.log("pushing draw to drawSettingsTimelockTriggerRinkeby rinkebyDrawSettings", rinkebyDrawSettings)
     
@@ -164,7 +164,7 @@ async function handler(event) {
     }
   }
 
-  for (let drawId = rinkebyOldestDraw.drawId; drawId <= rinkebyNewestDraw.drawId; drawId++) {
+  for (let drawId = Math.max(1, rinkebyOldestDraw.drawId); drawId <= rinkebyNewestDraw.drawId; drawId++) {
     console.log(`Checking Mumbai draw ${drawId}`)
     const draw = await drawHistoryRinkeby.getDraw(drawId)
     try {
