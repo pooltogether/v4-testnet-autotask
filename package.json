@@ -19,7 +19,8 @@
   "scripts": {
     "build": "rollup -c rollup.config.js",
     "update": "yarn build && ./scripts/updateTask.js",
-    "start": "/usr/bin/env node ./src/cli.js"
+    "start": "/usr/bin/env node ./src/cli.js",
+    "reinstall": "rm -rf node_modules/ && yarn cache clean && yarn"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^15.1.0",

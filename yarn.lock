@@ -709,7 +709,7 @@
 
 "@pooltogether/v4-testnet@github://pooltogether/v4-testnet":
   version "1.0.0"
-  resolved "git+ssh://git@github.com/pooltogether/v4-testnet.git#44e54801130669081f741679c90fb82f20208d04"
+  resolved "git+ssh://git@github.com/pooltogether/v4-testnet.git#9f01138ff1e8ea826e217056fd371c4c549a05c3"
   dependencies:
     "@pooltogether/owner-manager-contracts" "1.1.0"
     "@pooltogether/v4-core" "github://pooltogether/pooltogether-contract-tsunami"

@@ -102,8 +102,8 @@ async function handler(event) {
   const drawSettings = {
     bitRangeSize: bitRange,
     matchCardinality: cardinality,
-    distributions: [toWei('0.5'), toWei('0.1'), toWei('0.2')],
-    prize: ethers.utils.parseEther('10000'),
+    distributions: [ethers.utils.parseUnits("0.5", 9),ethers.utils.parseUnits("0.3", 9), ethers.utils.parseUnits("0.2", 9)],
+    prize: ethers.utils.parseEther('100'),
     maxPicksPerUser: 10,
     drawStartTimestampOffset: 0, 
     drawEndTimestampOffset: 0
@@ -120,19 +120,22 @@ async function handler(event) {
 
   const rinkebyDrawSettings = {
     ...drawSettings,
-    picks: rinkebyPicks
+    numberOfPicks: rinkebyPicks
   }
 
   const mumbaiDrawSettings = {
     ...drawSettings,
-    picks: mumbaiPicks
+    numberOfPicks: mumbaiPicks
   }
 
   let rinkebyNewestDraw = { drawId: 0 }
   let rinkebyOldestDraw = { drawId: 1 }
   try {
+
     rinkebyNewestDraw = await drawHistoryRinkeby.getNewestDraw()
+    console.log("rinkebyNewestDraw: ", rinkebyNewestDraw, "\n")
     rinkebyOldestDraw = await drawHistoryRinkeby.getOldestDraw()
+    console.log("rinkebyOldestDraw: ", rinkebyOldestDraw, "\n")
   } catch (e) {
     // console.warn(e)
   }
@@ -145,7 +148,11 @@ async function handler(event) {
       console.log(`Rinkeby Draw Settings exist for ${drawId}`)
     } catch (e) {
       console.log(`ATLKING TO: ${drawSettingsTimelockTriggerRinkeby.address}`)
+      console.log("pushing draw to drawSettingsTimelockTriggerRinkeby", drawId)
+      // console.log("pushing draw to drawSettingsTimelockTriggerRinkeby rinkebyDrawSettings", rinkebyDrawSettings)
+    
       const tx = await drawSettingsTimelockTriggerRinkeby.populateTransaction.pushDrawSettings(drawId, rinkebyDrawSettings)  
+      
       const txRes = await rinkebyRelayer.sendTransaction({
         data: tx.data,
         to: tx.to,
@@ -159,12 +166,16 @@ async function handler(event) {
 
   for (let drawId = rinkebyOldestDraw.drawId; drawId <= rinkebyNewestDraw.drawId; drawId++) {
     console.log(`Checking Mumbai draw ${drawId}`)
-    const draw = drawHistoryRinkeby.getDraw(drawId)
+    const draw = await drawHistoryRinkeby.getDraw(drawId)
     try {
       await tsunamiDrawSettingsHistoryMumbai.getDrawSetting(drawId)
       console.log(`Mumbai Draw Settings exist for ${drawId}`)
     } catch (e) {
-      const tx = await fullTimelockTriggerMumbai.populateTransaction.pushDrawSettings(draw, mumbaiDrawSettings)
+
+      console.log("Mumbai pushing draw ", draw)
+      console.log("Mumbai pushing drawSettings", mumbaiDrawSettings)
+
+      const tx = await fullTimelockTriggerMumbai.populateTransaction.push(draw, mumbaiDrawSettings)
       const txRes = await mumbaiRelayer.sendTransaction({
         data: tx.data,
         to: tx.to,
