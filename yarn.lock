@@ -626,15 +626,10 @@
   resolved "https://registry.yarnpkg.com/@openzeppelin/contracts-upgradeable/-/contracts-upgradeable-3.4.0.tgz#7674c73c643a509f1b90c509e3e72fe9aae02aeb"
   integrity sha512-7wBcbukDqWZt/B1zjb7zyeWq+AC7rx7nGln7/hPxHdKd8PAiiteXd51Cp2KmGP8qaY0/TXh/fQLsA082LWp8Zw==
 
-"@openzeppelin/contracts-upgradeable@4.2.0":
-  version "4.2.0"
-  resolved "https://registry.yarnpkg.com/@openzeppelin/contracts-upgradeable/-/contracts-upgradeable-4.2.0.tgz#3b12d6fe9d51e563c8a6ae39c96c1d32c5d0fa4a"
-  integrity sha512-vn0hoUqQzgOLzLZwFgh+w/D5hzJHX8F7X/7t/gZdSQYIEXMyGpXUwkr5A3eoAeoc42f/n7yDhwusvBmNknM41Q==
-
-"@openzeppelin/contracts-upgradeable@^4.3.1":
-  version "4.3.1"
-  resolved "https://registry.yarnpkg.com/@openzeppelin/contracts-upgradeable/-/contracts-upgradeable-4.3.1.tgz#d2fdbacd010f9bc2228d58f9d3d3db4e49818ea6"
-  integrity sha512-vqS3gb1J5xlKc+7a931a5Qmg3HDR168E6aCfPY6lPrdFZV4TymN2+HVJNCqCo+KP2UMYDtqRsXu+KB/0L0E34g==
+"@openzeppelin/contracts@^4.3.1":
+  version "4.3.2"
+  resolved "https://registry.yarnpkg.com/@openzeppelin/contracts/-/contracts-4.3.2.tgz#ff80affd6d352dbe1bbc5b4e1833c41afd6283b6"
+  integrity sha512-AybF1cesONZStg5kWf6ao9OlqTZuPqddvprc0ky7lrUVOjXeKpmQ2Y9FK+6ygxasb+4aic4O5pneFBfwVsRRRg==
 
 "@pooltogether/current-pool-data@3.6.0":
   version "3.6.0"
@@ -651,12 +646,10 @@
   resolved "https://registry.yarnpkg.com/@pooltogether/fixed-point/-/fixed-point-1.0.0-beta.2.tgz#d76a1e77f21833e9b680296d65526b0ffd7415d7"
   integrity sha512-aUw4R0Z2oM0AK3W4LIXyBaojTOzRRbhLDHX0egeuvxfjy4gBb6X66v81gI7Wngg/7O0y9QL/B8jWkUnAFzhTig==
 
-"@pooltogether/owner-manager-contracts@0.0.1-beta.3":
-  version "0.0.1-beta.3"
-  resolved "https://registry.yarnpkg.com/@pooltogether/owner-manager-contracts/-/owner-manager-contracts-0.0.1-beta.3.tgz#883a07a0a703844fea5f711b83b9b07e8914147b"
-  integrity sha512-2rY7IRcsesShGkZc8n3mZE+jhpd2b7XzZOoos04mnIRQgP50wQYpwslLhgrODvuHG6ywNCilJPhF2jIZFpi3Ow==
-  dependencies:
-    "@openzeppelin/contracts-upgradeable" "^4.3.1"
+"@pooltogether/owner-manager-contracts@1.1.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@pooltogether/owner-manager-contracts/-/owner-manager-contracts-1.1.0.tgz#776f1b96a81cec05bfe6575583b4b239a4038fa9"
+  integrity sha512-1PqkzSE/AJ4luGhpEfaN9YnHI7mbe63zy92iXgNwHJ4XDqerm+hfJsggrXK7BUyUkAIFLFf8+Ol0TntZAUTedw==
 
 "@pooltogether/pooltogether-contracts@3.1.0":
   version "3.1.0"
@@ -698,24 +691,30 @@
   resolved "https://registry.yarnpkg.com/@pooltogether/uniform-random-number/-/uniform-random-number-1.0.0-beta.1.tgz#72257401fe8536e95f9f812f1d249262659084a7"
   integrity sha512-V4iqLOpNFNhnUqfKRlvqUeRwvKaODdz+qn4Qi65C3iMOnDb0J31tBvyhwKbhP4wauNuUN64WfepqkkxET9U7EQ==
 
-"@pooltogether/v4-rinkeby@github://pooltogether/v4-rinkeby":
-  version "1.0.0"
-  resolved "git+ssh://git@github.com/pooltogether/v4-rinkeby.git#cbcc6ed5042b04e9c9d60acba92ce3134e34af04"
-  dependencies:
-    "@pooltogether/v4" "github://pooltogether/pooltogether-contract-tsunami"
-    "@pooltogether/yield-source-interface" "^1.1.0"
-
-"@pooltogether/v4@github://pooltogether/pooltogether-contract-tsunami":
+"@pooltogether/v4-core@github://pooltogether/pooltogether-contract-tsunami":
   version "1.0.0-beta.1"
-  resolved "git+ssh://git@github.com/pooltogether/pooltogether-contract-tsunami.git#1813435388b7a6043759d7fd2578276a17b02b60"
+  resolved "git+ssh://git@github.com/pooltogether/pooltogether-contract-tsunami.git#c6d9cd3ab1461bf49bb8648da7c2fb428d59c8ad"
   dependencies:
-    "@openzeppelin/contracts-upgradeable" "4.2.0"
+    "@openzeppelin/contracts" "^4.3.1"
     "@pooltogether/fixed-point" "1.0.0"
-    "@pooltogether/owner-manager-contracts" "0.0.1-beta.3"
+    "@pooltogether/owner-manager-contracts" "1.1.0"
     "@pooltogether/pooltogether-contracts" "3.4.4"
     "@pooltogether/pooltogether-rng-contracts" "1.4.0"
     "@pooltogether/yield-source-interface" "1.0.2"
     deploy-eip-1820 "1.0.0"
+
+"@pooltogether/v4-oracle-timelocks@github://pooltogether/v4-oracle-timelocks":
+  version "1.0.0-beta.1"
+  resolved "git+ssh://git@github.com/pooltogether/v4-oracle-timelocks.git#403c45c76be6d0d466ada2c6005a7f6e7f9515dc"
+
+"@pooltogether/v4-testnet@github://pooltogether/v4-testnet":
+  version "1.0.0"
+  resolved "git+ssh://git@github.com/pooltogether/v4-testnet.git#44e54801130669081f741679c90fb82f20208d04"
+  dependencies:
+    "@pooltogether/owner-manager-contracts" "1.1.0"
+    "@pooltogether/v4-core" "github://pooltogether/pooltogether-contract-tsunami"
+    "@pooltogether/v4-oracle-timelocks" "github://pooltogether/v4-oracle-timelocks"
+    "@pooltogether/yield-source-interface" "^1.1.0"
 
 "@pooltogether/yield-source-interface@1.0.2":
   version "1.0.2"
@@ -2506,6 +2505,13 @@ debug@=3.1.0:
   integrity sha512-OX8XqP7/1a9cqkxYw2yXss15f26NKWBpDXQd0/uK/KPqdQhxbPa994hnzjcE2VqQpDslf55723cKPUOGSmMY3g==
   dependencies:
     ms "2.0.0"
+
+debug@^4.3.2:
+  version "4.3.2"
+  resolved "https://registry.yarnpkg.com/debug/-/debug-4.3.2.tgz#f0a49c18ac8779e31d4a0c6029dfb76873c7428b"
+  integrity sha512-mOp8wKcvj7XxC78zLgw/ZA+6TSgkoE2C/ienthhRD298T7UNwAg9diBpLRxC0mOezLl4B0xV7M0cCO6P/O0Xhw==
+  dependencies:
+    ms "2.1.2"
 
 decamelize@^1.2.0:
   version "1.2.0"
