@@ -96,8 +96,8 @@ async function handler(event) {
   console.log(`mumbaiPrizeTickets: ${mumbaiPrizeTickets.toString()}`)
   console.log(`totalEligibleTickets: ${totalEligibleTickets.toString()}`)
 
-  const bitRange = 3
-  const cardinality = 6
+  const bitRange = 2
+  const cardinality = 3
   const totalPicks = (2**bitRange)**cardinality
   const drawSettings = {
     bitRangeSize: bitRange,
@@ -140,14 +140,15 @@ async function handler(event) {
     // console.warn(e)
   }
 
-  console.log(`TALKING TO: ${drawSettingsTimelockTriggerRinkeby.address}`)
+  console.log(`Checking Rinkeby for drawId ${Math.max(1, rinkebyOldestDraw.drawId)} to ${rinkebyNewestDraw.drawId}`)  
+
   for (let drawId = Math.max(1, rinkebyOldestDraw.drawId); drawId <= rinkebyNewestDraw.drawId; drawId++) {
     console.log(`Checking Rinkeby draw ${drawId}`)
     try {
       await tsunamiDrawSettingsHistoryRinkeby.getDrawSetting(drawId)
       console.log(`Rinkeby Draw Settings exist for ${drawId}`)
     } catch (e) {
-      console.log(`TALKING TO: ${drawSettingsTimelockTriggerRinkeby.address}`)
+      
       console.log("pushing draw to drawSettingsTimelockTriggerRinkeby", drawId)
       // console.log("pushing draw to drawSettingsTimelockTriggerRinkeby rinkebyDrawSettings", rinkebyDrawSettings)
     
@@ -163,10 +164,21 @@ async function handler(event) {
       break;
     }
   }
+  
+  console.log(`Checking Rinkeby for drawId ${Math.max(1, rinkebyOldestDraw.drawId)} to ${rinkebyNewestDraw.drawId}`)  
 
   for (let drawId = Math.max(1, rinkebyOldestDraw.drawId); drawId <= rinkebyNewestDraw.drawId; drawId++) {
     console.log(`Checking Mumbai draw ${drawId}`)
-    const draw = await drawHistoryRinkeby.getDraw(drawId)
+    let draw
+    try{
+      draw = await drawHistoryRinkeby.getDraw(drawId)
+      console.log(`got draw for drawId ${drawId}`)
+    }
+    catch(e){
+      console.log(`drawId ${drawId} did not exist. skipping.`)
+      continue
+    }
+    
     try {
       await tsunamiDrawSettingsHistoryMumbai.getDrawSetting(drawId)
       console.log(`Mumbai Draw Settings exist for ${drawId}`)
