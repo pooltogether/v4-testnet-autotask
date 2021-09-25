@@ -693,7 +693,7 @@
 
 "@pooltogether/v4-core@github://pooltogether/pooltogether-contract-tsunami":
   version "1.0.0-beta.1"
-  resolved "git+ssh://git@github.com/pooltogether/pooltogether-contract-tsunami.git#c6d9cd3ab1461bf49bb8648da7c2fb428d59c8ad"
+  resolved "git+ssh://git@github.com/pooltogether/pooltogether-contract-tsunami.git#718edafa0dc3427136193f86e96a8d96d2ddc74c"
   dependencies:
     "@openzeppelin/contracts" "^4.3.1"
     "@pooltogether/fixed-point" "1.0.0"
@@ -709,7 +709,7 @@
 
 "@pooltogether/v4-testnet@github://pooltogether/v4-testnet":
   version "1.0.0"
-  resolved "git+ssh://git@github.com/pooltogether/v4-testnet.git#9f01138ff1e8ea826e217056fd371c4c549a05c3"
+  resolved "git+ssh://git@github.com/pooltogether/v4-testnet.git#009e49f4ba84e78021888558cc376b2a60053ddf"
   dependencies:
     "@pooltogether/owner-manager-contracts" "1.1.0"
     "@pooltogether/v4-core" "github://pooltogether/pooltogether-contract-tsunami"

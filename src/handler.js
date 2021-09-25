@@ -5,6 +5,8 @@ const DrawBeaconRinkeby = require('@pooltogether/v4-testnet/deployments/rinkeby/
 const DrawHistoryRinkeby = require('@pooltogether/v4-testnet/deployments/rinkeby/DrawHistory.json')
 const TsunamiDrawSettingsHistoryRinkeby = require('@pooltogether/v4-testnet/deployments/rinkeby/TsunamiDrawSettingsHistory.json')
 const TsunamiDrawSettingsHistoryMumbai = require('@pooltogether/v4-testnet/deployments/mumbai/TsunamiDrawSettingsHistory.json')
+const ReserveRinkeby = require('@pooltogether/v4-testnet/deployments/rinkeby/Reserve.json')
+const ReserveMumbai = require('@pooltogether/v4-testnet/deployments/mumbai/Reserve.json')
 const DrawSettingsTimelockTriggerRinkeby = require('@pooltogether/v4-testnet/deployments/rinkeby/DrawSettingsTimelockTrigger.json')
 const FullTimelockTriggerMumbai = require('@pooltogether/v4-testnet/deployments/mumbai/FullTimelockTrigger.json')
 const TicketRinkeby = require('@pooltogether/v4-testnet/deployments/rinkeby/Ticket.json')
@@ -12,7 +14,23 @@ const TicketMumbai = require('@pooltogether/v4-testnet/deployments/mumbai/Ticket
 const ClaimableDrawRinkeby = require('@pooltogether/v4-testnet/deployments/rinkeby/ClaimableDraw.json')
 const ClaimableDrawMumbai = require('@pooltogether/v4-testnet/deployments/mumbai/ClaimableDraw.json')
 
-const toWei = ethers.utils.parseEther
+async function calculatePicks(totalPicks, draw, drawSettings, reserveToCalculate, otherReserve) {
+  const totalPicks = (2**drawSettings.bitRange)**drawSettings.cardinality
+  const sampleStartTimestamp = draw.timestamp - drawSettings.drawStartTimestampOffset
+  const sampleEndTimestamp = draw.timestamp - drawSettings.drawEndTimestampOffset
+  
+  const reserveAccumulated = await reserveToCalculate.getReserveAccumulatedBetween(sampleStartTimestamp, sampleEndTimestamp)
+  const otherReserveAccumulated = await otherReserve.getReserveAccumulatedBetween(sampleStartTimestamp, sampleEndTimestamp)
+
+  let numberOfPicks
+  if (reserveAccumulated.gt('0')) {
+    numberOfPicks = reserveAccumulated.mul(totalPicks).div(otherReserveAccumulated.add(reserveAccumulated))
+  } else {
+    numberOfPicks = ethers.BigNumber.from('0')
+  }
+
+  return numberOfPicks
+}
 
 async function handler(event) {
   const rinkebyRelayer = new Relayer(event);
@@ -31,10 +49,10 @@ async function handler(event) {
   const drawHistoryRinkeby = new ethers.Contract(DrawHistoryRinkeby.address, DrawHistoryRinkeby.abi, ethereumProvider)
   const tsunamiDrawSettingsHistoryRinkeby = new ethers.Contract(TsunamiDrawSettingsHistoryRinkeby.address, TsunamiDrawSettingsHistoryRinkeby.abi, ethereumProvider)
   const tsunamiDrawSettingsHistoryMumbai = new ethers.Contract(TsunamiDrawSettingsHistoryMumbai.address, TsunamiDrawSettingsHistoryMumbai.abi, polygonProvider)
-  const ticketRinkeby = new ethers.Contract(TicketRinkeby.address, TicketRinkeby.abi, ethereumProvider)
-  const ticketMumbai = new ethers.Contract(TicketMumbai.address, TicketMumbai.abi, polygonProvider)
-  const claimableDrawRinkeby = new ethers.Contract(ClaimableDrawRinkeby.address, ClaimableDrawRinkeby.abi, ethereumProvider)
-  const claimableDrawMumbai = new ethers.Contract(ClaimableDrawMumbai.address, ClaimableDrawMumbai.abi, polygonProvider)
+  const drawCalculatorTimelockRinkeby = new ethers.Contract(DrawCalculatorTimelockRinkeby.address, DrawCalculatorTimelockRinkeby.abi, ethereumProvider)
+  const drawCalculatorTimelockMumbai = new ethers.Contract(DrawCalculatorTimelockMumbai.address, DrawCalculatorTimelockMumbai.abi, polygonProvider)
+  const reserveRinkeby = new ethers.Contract(ReserveRinkeby.address, ReserveRinkeby.abi, ethereumProvider)
+  const reserveMumbai = new ethers.Contract(ReserveMumbai.address, ReserveMumbai.abi, polygonProvider)
   const drawSettingsTimelockTriggerRinkeby = new ethers.Contract(DrawSettingsTimelockTriggerRinkeby.address, DrawSettingsTimelockTriggerRinkeby.abi, ethereumProvider)
   const fullTimelockTriggerMumbai = new ethers.Contract(FullTimelockTriggerMumbai.address, FullTimelockTriggerMumbai.abi, polygonProvider)
 
@@ -49,7 +67,7 @@ async function handler(event) {
       speed: 'fast',
       gasLimit: 500000,
     });
-    console.log(`Started Draw ${nextDrawId}: `, txRes)
+    console.log(`Started Draw ${nextDrawId}`)
   }
 
   let completedDraw = false
@@ -62,142 +80,78 @@ async function handler(event) {
       speed: 'fast',
       gasLimit: 500000,
     });
-    console.log(`Completed Draw ${nextDrawId}: `, txRes)
+    console.log(`Completed Draw ${nextDrawId}`)
     completedDraw = true
   }
 
-  /*
+  const newestDraw = await drawHistoryRinkeby.getNewestDraw()
+  const { drawId: lastRinkebyDrawId, drawSettings: lastRinkebyDrawSettings } = await tsunamiDrawSettingsHistoryRinkeby.getNewestDrawSettings()
+  const rinkebyTimelockElapsed = await drawCalculatorTimelockRinkeby.hasElapsed()
 
-  get total supplies
-  calculate fraction of liquidity for each
-  calculate # of picks based on fraction and total picks
-  setup draw settings
+  // If the draw settings hasn't propagated and we're allowed to push
+  if (lastRinkebyDrawId < newestDraw.drawId && rinkebyTimelockElapsed) {
+    // get the draw
+    const draw = await drawHistoryRinkeby.getDraw(lastRinkebyDrawId + 1)
 
-  push new draw + draw settings
+    // NOTE: This is bad!  Need to get this predictably and on-chain.
+    const drawPeriod = (await drawBeacon.beaconPeriodSeconds()).toNumber()
 
-  what is the next draw we need for polygon: FullTimelockTrigger, ethereum: DrawSettingsTimelockTrigger
+    // compute the draw settings we want
+    const bitRange = 3
+    const cardinality = 5
+    const drawSettings = {
+      bitRangeSize: bitRange,
+      matchCardinality: cardinality,
+      distributions: [ethers.utils.parseUnits("0.5", 9),ethers.utils.parseUnits("0.3", 9), ethers.utils.parseUnits("0.2", 9)],
+      maxPicksPerUser: 10,
+      drawStartTimestampOffset: drawPeriod,
+      drawEndTimestampOffset: drawPeriod*0.005 // basically equivalent to (one hour / week)
+    }
 
-  // need to figure out what the next draw id is for each trigger
-  // then pull in the draw from the ethereum draw history
+    // calculate the fraction of picks based on reserve capture
+    const picksRinkeby = await calculatePicks(draw, drawSettings, reserveRinkeby, reserveMumbai)
 
-  // then push to the FullTimelockTrigger: draw + drawSettings
-  // then push to the DrawSettingsTimelockTrigger: drawSettings
+    const txData = await drawSettingsTimelockTriggerRinkeby.populateTransaction.pushDrawSettings(
+      draw.drawId,
+      {
+        ...drawSettings,
+        numberOfPicks: picksRinkeby.toNumber()
+      }
+    )
 
-  */
+    const tx = await rinkebyRelayer.sendTransaction({
+      data: txData.data,
+      to: txData.to,
+      speed: 'fast',
+      gasLimit: 500000,
+    });
 
-  // propagate draw settings
-  const rinkebyPrizeTickets = await ticketRinkeby.balanceOf(claimableDrawRinkeby.address)
-  const mumbaiPrizeTickets = await ticketMumbai.balanceOf(claimableDrawMumbai.address)
-  const totalEligibleTickets = (await ticketMumbai.totalSupply()).add(await ticketRinkeby.totalSupply()).sub(rinkebyPrizeTickets).sub(mumbaiPrizeTickets)
+    console.log(`Propagated draw ${draw.drawId} to Rinkeby: `, tx)
+  }
+
+  const { drawId: lastMumbaiDrawId } = await tsunamiDrawSettingsHistoryMumbai.getNewestDrawSettings()
+  const mumbaiTimelockElapsed = await drawCalculatorTimelockMumbai.hasElapsed()
   
-  console.log(`ticketRinkeby: ${ticketRinkeby.address}`)
-  console.log(`ticketMumbai: ${ticketMumbai.address}`)
-  console.log(`rinkebyPrizeTickets: ${rinkebyPrizeTickets.toString()}`)
-  console.log(`mumbaiPrizeTickets: ${mumbaiPrizeTickets.toString()}`)
-  console.log(`totalEligibleTickets: ${totalEligibleTickets.toString()}`)
-
-  const bitRange = 2
-  const cardinality = 3
-  const totalPicks = (2**bitRange)**cardinality
-  const drawSettings = {
-    bitRangeSize: bitRange,
-    matchCardinality: cardinality,
-    distributions: [ethers.utils.parseUnits("0.5", 9),ethers.utils.parseUnits("0.3", 9), ethers.utils.parseUnits("0.2", 9)],
-    prize: ethers.utils.parseEther('100'),
-    maxPicksPerUser: 10,
-    drawStartTimestampOffset: 0, 
-    drawEndTimestampOffset: 0
-  }
-
-  const rinkebyTicketFraction = parseFloat(ethers.utils.formatEther(rinkebyPrizeTickets.mul(ethers.utils.parseEther('1')).div(totalEligibleTickets)))
-  const mumbaiTicketFraction = parseFloat(ethers.utils.formatEther(mumbaiPrizeTickets.mul(ethers.utils.parseEther('1')).div(totalEligibleTickets)))
-
-  const rinkebyPicks = Math.floor(rinkebyTicketFraction * totalPicks)
-  const mumbaiPicks = Math.floor(mumbaiTicketFraction * totalPicks)
-
-  console.log(`rinkebyPicks: ${rinkebyPicks}`)
-  console.log(`mumbaiPicks: ${mumbaiPicks}`)
-
-  const rinkebyDrawSettings = {
-    ...drawSettings,
-    numberOfPicks: 1000
-  }
-
-  const mumbaiDrawSettings = {
-    ...drawSettings,
-    numberOfPicks: 1000
-  }
-
-  let rinkebyNewestDraw = { drawId: 0 }
-  let rinkebyOldestDraw = { drawId: 1 }
-  try {
-
-    rinkebyNewestDraw = await drawHistoryRinkeby.getNewestDraw()
-    console.log("rinkebyNewestDraw: ", rinkebyNewestDraw, "\n")
-    rinkebyOldestDraw = await drawHistoryRinkeby.getOldestDraw()
-    console.log("rinkebyOldestDraw: ", rinkebyOldestDraw, "\n")
-  } catch (e) {
-    // console.warn(e)
-  }
-
-  console.log(`Checking Rinkeby for drawId ${Math.max(1, rinkebyOldestDraw.drawId)} to ${rinkebyNewestDraw.drawId}`)  
-
-  for (let drawId = Math.max(1, rinkebyOldestDraw.drawId); drawId <= rinkebyNewestDraw.drawId; drawId++) {
-    console.log(`Checking Rinkeby draw ${drawId}`)
-    try {
-      await tsunamiDrawSettingsHistoryRinkeby.getDrawSetting(drawId)
-      console.log(`Rinkeby Draw Settings exist for ${drawId}`)
-    } catch (e) {
-      
-      console.log("pushing draw to drawSettingsTimelockTriggerRinkeby", drawId)
-      // console.log("pushing draw to drawSettingsTimelockTriggerRinkeby rinkebyDrawSettings", rinkebyDrawSettings)
+  if (lastMumbaiDrawId < lastRinkebyDrawId && mumbaiTimelockElapsed) {
+    const draw = await drawHistoryRinkeby.getDraw(lastRinkebyDrawId)
     
-      const tx = await drawSettingsTimelockTriggerRinkeby.populateTransaction.pushDrawSettings(drawId, rinkebyDrawSettings)  
-      
-      const txRes = await rinkebyRelayer.sendTransaction({
-        data: tx.data,
-        to: tx.to,
-        speed: 'fast',
-        gasLimit: 500000,
-      });
-      console.log(`Propagated draw ${drawId} to Rinkeby: `, txRes)
-      break;
-    }
-  }
-  
-  console.log(`Checking Rinkeby for drawId ${Math.max(1, rinkebyOldestDraw.drawId)} to ${rinkebyNewestDraw.drawId}`)  
+    const picksMumbai = await calculatePicks(draw, lastRinkebyDrawSettings, reserveMumbai, reserveRinkeby)
 
-  for (let drawId = Math.max(1, rinkebyOldestDraw.drawId); drawId <= rinkebyNewestDraw.drawId; drawId++) {
-    console.log(`Checking Mumbai draw ${drawId}`)
-    let draw
-    try{
-      draw = await drawHistoryRinkeby.getDraw(drawId)
-      console.log(`got draw for drawId ${drawId}`)
-    }
-    catch(e){
-      console.log(`drawId ${drawId} did not exist. skipping.`)
-      continue
-    }
+    const txData = await fullTimelockTriggerMumbai.populateTransaction.push(draw, {
+      ...lastRinkebyDrawSettings,
+      numberOfPicks: picksMumbai
+    })
     
-    try {
-      await tsunamiDrawSettingsHistoryMumbai.getDrawSetting(drawId)
-      console.log(`Mumbai Draw Settings exist for ${drawId}`)
-    } catch (e) {
+    const tx = await mumbaiRelayer.sendTransaction({
+      data: txData.data,
+      to: txData.to,
+      speed: 'fast',
+      gasLimit: 500000,
+    });
 
-      console.log("Mumbai pushing draw ", draw)
-      console.log("Mumbai pushing drawSettings", mumbaiDrawSettings)
-
-      const tx = await fullTimelockTriggerMumbai.populateTransaction.push(draw, mumbaiDrawSettings)
-      const txRes = await mumbaiRelayer.sendTransaction({
-        data: tx.data,
-        to: tx.to,
-        speed: 'fast',
-        gasLimit: 500000,
-      });
-      console.log(`Propagated draw ${drawId} to Mumbai: `, txRes)
-      break;
-    }
+    console.log(`Propagated draw ${draw.drawId} to Mumbai: `, tx)
   }
+
   console.log("Handler Complete!")
 }
 
