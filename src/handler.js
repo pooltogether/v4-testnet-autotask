@@ -3,14 +3,14 @@ const ethers = require('ethers')
 
 const DrawBeaconRinkeby = require('@pooltogether/v4-testnet/deployments/rinkeby/DrawBeacon.json')
 const DrawHistoryRinkeby = require('@pooltogether/v4-testnet/deployments/rinkeby/DrawHistory.json')
-const TsunamiDrawSettingsHistoryRinkeby = require('@pooltogether/v4-testnet/deployments/rinkeby/TsunamiDrawSettingsHistory.json')
-const TsunamiDrawSettingsHistoryMumbai = require('@pooltogether/v4-testnet/deployments/mumbai/TsunamiDrawSettingsHistory.json')
-const DrawSettingsTimelockTriggerRinkeby = require('@pooltogether/v4-testnet/deployments/rinkeby/DrawSettingsTimelockTrigger.json')
-const FullTimelockTriggerMumbai = require('@pooltogether/v4-testnet/deployments/mumbai/FullTimelockTrigger.json')
+const PrizeDistributionHistoryRinkeby = require('@pooltogether/v4-testnet/deployments/rinkeby/PrizeDistributionHistory.json')
+const PrizeDistributionHistoryMumbai = require('@pooltogether/v4-testnet/deployments/mumbai/PrizeDistributionHistory.json')
+const L1TimelockTriggerRinkeby = require('@pooltogether/v4-testnet/deployments/rinkeby/L1TimelockTrigger.json')
+const L2TimelockTriggerMumbai = require('@pooltogether/v4-testnet/deployments/mumbai/L2TimelockTrigger.json')
 const TicketRinkeby = require('@pooltogether/v4-testnet/deployments/rinkeby/Ticket.json')
 const TicketMumbai = require('@pooltogether/v4-testnet/deployments/mumbai/Ticket.json')
-const ClaimableDrawRinkeby = require('@pooltogether/v4-testnet/deployments/rinkeby/ClaimableDraw.json')
-const ClaimableDrawMumbai = require('@pooltogether/v4-testnet/deployments/mumbai/ClaimableDraw.json')
+const DrawPrizesRinkeby = require('@pooltogether/v4-testnet/deployments/rinkeby/DrawPrizes.json')
+const DrawPrizesMumbai = require('@pooltogether/v4-testnet/deployments/mumbai/DrawPrizes.json')
 
 const toWei = ethers.utils.parseEther
 
@@ -28,15 +28,20 @@ async function handler(event) {
   const polygonProvider = new ethers.providers.JsonRpcProvider(`https://polygon-mumbai.infura.io/v3/${infuraApiKey}`)
 
   const drawBeacon = new ethers.Contract(DrawBeaconRinkeby.address, DrawBeaconRinkeby.abi, ethereumProvider)
+  
   const drawHistoryRinkeby = new ethers.Contract(DrawHistoryRinkeby.address, DrawHistoryRinkeby.abi, ethereumProvider)
-  const tsunamiDrawSettingsHistoryRinkeby = new ethers.Contract(TsunamiDrawSettingsHistoryRinkeby.address, TsunamiDrawSettingsHistoryRinkeby.abi, ethereumProvider)
-  const tsunamiDrawSettingsHistoryMumbai = new ethers.Contract(TsunamiDrawSettingsHistoryMumbai.address, TsunamiDrawSettingsHistoryMumbai.abi, polygonProvider)
+  const prizeDistributionHistoryRinkeby = new ethers.Contract(PrizeDistributionHistoryRinkeby.address, PrizeDistributionHistoryRinkeby.abi, ethereumProvider)
+  
+  const prizeDistributionHistoryMumbai = new ethers.Contract(PrizeDistributionHistoryMumbai.address, PrizeDistributionHistoryMumbai.abi, polygonProvider)
+
   const ticketRinkeby = new ethers.Contract(TicketRinkeby.address, TicketRinkeby.abi, ethereumProvider)
   const ticketMumbai = new ethers.Contract(TicketMumbai.address, TicketMumbai.abi, polygonProvider)
-  const claimableDrawRinkeby = new ethers.Contract(ClaimableDrawRinkeby.address, ClaimableDrawRinkeby.abi, ethereumProvider)
-  const claimableDrawMumbai = new ethers.Contract(ClaimableDrawMumbai.address, ClaimableDrawMumbai.abi, polygonProvider)
-  const drawSettingsTimelockTriggerRinkeby = new ethers.Contract(DrawSettingsTimelockTriggerRinkeby.address, DrawSettingsTimelockTriggerRinkeby.abi, ethereumProvider)
-  const fullTimelockTriggerMumbai = new ethers.Contract(FullTimelockTriggerMumbai.address, FullTimelockTriggerMumbai.abi, polygonProvider)
+
+  const drawPrizesRinkeby = new ethers.Contract(DrawPrizesRinkeby.address, DrawPrizesRinkeby.abi, ethereumProvider)
+  const drawPrizesMumbai = new ethers.Contract(DrawPrizesMumbai.address, DrawPrizesMumbai.abi, polygonProvider)
+
+  const drawSettingsTimelockTriggerRinkeby = new ethers.Contract(L1TimelockTriggerRinkeby.address, L1TimelockTriggerRinkeby.abi, ethereumProvider)
+  const l2TimelockTriggerMumbai = new ethers.Contract(L2TimelockTriggerMumbai.address, L2TimelockTriggerMumbai.abi, polygonProvider)
 
   const nextDrawId = await drawBeacon.nextDrawId()
 
@@ -66,28 +71,9 @@ async function handler(event) {
     completedDraw = true
   }
 
-  /*
-
-  get total supplies
-  calculate fraction of liquidity for each
-  calculate # of picks based on fraction and total picks
-  setup draw settings
-
-  push new draw + draw settings
-
-  what is the next draw we need for polygon: FullTimelockTrigger, ethereum: DrawSettingsTimelockTrigger
-
-  // need to figure out what the next draw id is for each trigger
-  // then pull in the draw from the ethereum draw history
-
-  // then push to the FullTimelockTrigger: draw + drawSettings
-  // then push to the DrawSettingsTimelockTrigger: drawSettings
-
-  */
-
   // propagate draw settings
-  const rinkebyPrizeTickets = await ticketRinkeby.balanceOf(claimableDrawRinkeby.address)
-  const mumbaiPrizeTickets = await ticketMumbai.balanceOf(claimableDrawMumbai.address)
+  const rinkebyPrizeTickets = await ticketRinkeby.balanceOf(drawPrizesRinkeby.address)
+  const mumbaiPrizeTickets = await ticketMumbai.balanceOf(drawPrizesMumbai.address)
   const totalEligibleTickets = (await ticketMumbai.totalSupply()).add(await ticketRinkeby.totalSupply()).sub(rinkebyPrizeTickets).sub(mumbaiPrizeTickets)
   
   console.log(`ticketRinkeby: ${ticketRinkeby.address}`)
@@ -145,7 +131,7 @@ async function handler(event) {
   for (let drawId = Math.max(1, rinkebyOldestDraw.drawId); drawId <= rinkebyNewestDraw.drawId; drawId++) {
     console.log(`Checking Rinkeby draw ${drawId}`)
     try {
-      await tsunamiDrawSettingsHistoryRinkeby.getDrawSetting(drawId)
+      await prizeDistributionHistoryRinkeby.getDrawSetting(drawId)
       console.log(`Rinkeby Draw Settings exist for ${drawId}`)
     } catch (e) {
       
@@ -180,14 +166,14 @@ async function handler(event) {
     }
     
     try {
-      await tsunamiDrawSettingsHistoryMumbai.getDrawSetting(drawId)
+      await prizeDistributionHistoryMumbai.getDrawSetting(drawId)
       console.log(`Mumbai Draw Settings exist for ${drawId}`)
     } catch (e) {
 
       console.log("Mumbai pushing draw ", draw)
       console.log("Mumbai pushing drawSettings", mumbaiDrawSettings)
 
-      const tx = await fullTimelockTriggerMumbai.populateTransaction.push(draw, mumbaiDrawSettings)
+      const tx = await l2TimelockTriggerMumbai.populateTransaction.push(draw, mumbaiDrawSettings)
       const txRes = await mumbaiRelayer.sendTransaction({
         data: tx.data,
         to: tx.to,
