@@ -2,6 +2,24 @@ const ethers = require('ethers')
 const { Relayer } = require('defender-relay-client');
 const { getContracts } = require('./getContracts')
 
+async function calculatePicks(totalPicks, draw, drawSettings, reserveToCalculate, otherReserve) {
+  const totalPicks = (2**drawSettings.bitRange)**drawSettings.cardinality
+  const sampleStartTimestamp = draw.timestamp - drawSettings.drawStartTimestampOffset
+  const sampleEndTimestamp = draw.timestamp - drawSettings.drawEndTimestampOffset
+  
+  const reserveAccumulated = await reserveToCalculate.getReserveAccumulatedBetween(sampleStartTimestamp, sampleEndTimestamp)
+  const otherReserveAccumulated = await otherReserve.getReserveAccumulatedBetween(sampleStartTimestamp, sampleEndTimestamp)
+
+  let numberOfPicks
+  if (reserveAccumulated.gt('0')) {
+    numberOfPicks = reserveAccumulated.mul(totalPicks).div(otherReserveAccumulated.add(reserveAccumulated))
+  } else {
+    numberOfPicks = ethers.BigNumber.from('0')
+  }
+
+  return numberOfPicks
+}
+
 async function handler(event) {
   const rinkebyRelayer = new Relayer(event);
   const {
