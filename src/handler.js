@@ -40,7 +40,7 @@ async function handler(event) {
   const drawPrizesRinkeby = new ethers.Contract(DrawPrizesRinkeby.address, DrawPrizesRinkeby.abi, ethereumProvider)
   const drawPrizesMumbai = new ethers.Contract(DrawPrizesMumbai.address, DrawPrizesMumbai.abi, polygonProvider)
 
-  const drawSettingsTimelockTriggerRinkeby = new ethers.Contract(L1TimelockTriggerRinkeby.address, L1TimelockTriggerRinkeby.abi, ethereumProvider)
+  const l1TimelockTriggerRinkeby = new ethers.Contract(L1TimelockTriggerRinkeby.address, L1TimelockTriggerRinkeby.abi, ethereumProvider)
   const l2TimelockTriggerMumbai = new ethers.Contract(L2TimelockTriggerMumbai.address, L2TimelockTriggerMumbai.abi, polygonProvider)
 
   const nextDrawId = await drawBeacon.nextDrawId()
@@ -91,9 +91,20 @@ async function handler(event) {
     distributions: [ethers.utils.parseUnits("0.5", 9),ethers.utils.parseUnits("0.3", 9), ethers.utils.parseUnits("0.2", 9)],
     prize: ethers.utils.parseEther('100'),
     maxPicksPerUser: 10,
-    drawStartTimestampOffset: 0, 
-    drawEndTimestampOffset: 0
+    startOffsetTimestamp: 0, 
+    endOffsetTimestamp: 0
   }
+
+//   struct PrizeDistribution {
+//     uint8 bitRangeSize;
+//     uint8 matchCardinality;
+//     uint32 startOffsetTimestamp;
+//     uint32 endOffsetTimestamp;
+//     uint32 maxPicksPerUser;
+//     uint136 numberOfPicks;
+//     uint32[] distributions;
+//     uint256 prize;
+// }
 
   const rinkebyTicketFraction = parseFloat(ethers.utils.formatEther(rinkebyPrizeTickets.mul(ethers.utils.parseEther('1')).div(totalEligibleTickets)))
   const mumbaiTicketFraction = parseFloat(ethers.utils.formatEther(mumbaiPrizeTickets.mul(ethers.utils.parseEther('1')).div(totalEligibleTickets)))
@@ -135,10 +146,10 @@ async function handler(event) {
       console.log(`Rinkeby Draw Settings exist for ${drawId}`)
     } catch (e) {
       
-      console.log("pushing draw to drawSettingsTimelockTriggerRinkeby", drawId)
-      // console.log("pushing draw to drawSettingsTimelockTriggerRinkeby rinkebyDrawSettings", rinkebyDrawSettings)
+      console.log("pushing draw to l1TimelockTriggerRinkeby", drawId)
+      // console.log("pushing draw to l1TimelockTriggerRinkeby rinkebyDrawSettings", rinkebyDrawSettings)
     
-      const tx = await drawSettingsTimelockTriggerRinkeby.populateTransaction.pushDrawSettings(drawId, rinkebyDrawSettings)  
+      const tx = await l1TimelockTriggerRinkeby.populateTransaction.push({drawId:drawId, timestamp: 1, winningRandomNumber: 100, beaconPeriodStartedAt: 10, beaconPeriodSeconds: 60 }, rinkebyDrawSettings)  
       
       const txRes = await rinkebyRelayer.sendTransaction({
         data: tx.data,
@@ -173,7 +184,7 @@ async function handler(event) {
       console.log("Mumbai pushing draw ", draw)
       console.log("Mumbai pushing drawSettings", mumbaiDrawSettings)
 
-      const tx = await l2TimelockTriggerMumbai.populateTransaction.push(draw, mumbaiDrawSettings)
+      const tx = await l2TimelockTriggerMumbai.populateTransaction.pushDrawSettings(draw.drawId, mumbaiDrawSettings)
       const txRes = await mumbaiRelayer.sendTransaction({
         data: tx.data,
         to: tx.to,
