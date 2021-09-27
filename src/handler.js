@@ -9,10 +9,6 @@ const ReserveRinkeby = require('@pooltogether/v4-testnet/deployments/rinkeby/Res
 const ReserveMumbai = require('@pooltogether/v4-testnet/deployments/mumbai/Reserve.json')
 const DrawSettingsTimelockTriggerRinkeby = require('@pooltogether/v4-testnet/deployments/rinkeby/DrawSettingsTimelockTrigger.json')
 const FullTimelockTriggerMumbai = require('@pooltogether/v4-testnet/deployments/mumbai/FullTimelockTrigger.json')
-const TicketRinkeby = require('@pooltogether/v4-testnet/deployments/rinkeby/Ticket.json')
-const TicketMumbai = require('@pooltogether/v4-testnet/deployments/mumbai/Ticket.json')
-const ClaimableDrawRinkeby = require('@pooltogether/v4-testnet/deployments/rinkeby/ClaimableDraw.json')
-const ClaimableDrawMumbai = require('@pooltogether/v4-testnet/deployments/mumbai/ClaimableDraw.json')
 
 async function calculatePicks(totalPicks, draw, drawSettings, reserveToCalculate, otherReserve) {
   const totalPicks = (2**drawSettings.bitRange)**drawSettings.cardinality
