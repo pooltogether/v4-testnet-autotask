@@ -43,8 +43,8 @@ async function handler(event) {
 
   const drawBeacon = new ethers.Contract(DrawBeaconRinkeby.address, DrawBeaconRinkeby.abi, ethereumProvider)
   const drawHistoryRinkeby = new ethers.Contract(DrawHistoryRinkeby.address, DrawHistoryRinkeby.abi, ethereumProvider)
-  const tsunamiDrawSettingsHistoryRinkeby = new ethers.Contract(PrizeDistributionHistoryRinkeby.address, PrizeDistributionHistoryRinkeby.abi, ethereumProvider)
-  const tsunamiDrawSettingsHistoryMumbai = new ethers.Contract(PrizeDistributionHistoryMumbai.address, PrizeDistributionHistoryMumbai.abi, polygonProvider)
+  const prizeDistributionHistoryRinkeby = new ethers.Contract(PrizeDistributionHistoryRinkeby.address, PrizeDistributionHistoryRinkeby.abi, ethereumProvider)
+  const prizeDistributionHistoryMumbai = new ethers.Contract(PrizeDistributionHistoryMumbai.address, PrizeDistributionHistoryMumbai.abi, polygonProvider)
   const drawCalculatorTimelockRinkeby = new ethers.Contract(DrawCalculatorTimelockRinkeby.address, DrawCalculatorTimelockRinkeby.abi, ethereumProvider)
   const drawCalculatorTimelockMumbai = new ethers.Contract(DrawCalculatorTimelockMumbai.address, DrawCalculatorTimelockMumbai.abi, polygonProvider)
   const reserveRinkeby = new ethers.Contract(ReserveRinkeby.address, ReserveRinkeby.abi, ethereumProvider)
@@ -81,7 +81,7 @@ async function handler(event) {
   }
 
   const newestDraw = await drawHistoryRinkeby.getNewestDraw()
-  const { drawId: lastRinkebyDrawId, drawSettings: lastRinkebyDrawSettings } = await tsunamiDrawSettingsHistoryRinkeby.getNewestDrawSettings()
+  const { drawId: lastRinkebyDrawId, drawSettings: lastRinkebyDrawSettings } = await prizeDistributionHistoryRinkeby.getNewestDrawSettings()
   const rinkebyTimelockElapsed = await drawCalculatorTimelockRinkeby.hasElapsed()
 
   // If the draw settings hasn't propagated and we're allowed to push
@@ -107,7 +107,7 @@ async function handler(event) {
     // calculate the fraction of picks based on reserve capture
     const picksRinkeby = await calculatePicks(draw, drawSettings, reserveRinkeby, reserveMumbai)
 
-    const txData = await l1TimelockTriggerRinkeby.populateTransaction.pushDrawSettings(
+    const txData = await l1TimelockTriggerRinkeby.populateTransaction.pushPrizeDistribution(
       draw.drawId,
       {
         ...drawSettings,
@@ -125,7 +125,7 @@ async function handler(event) {
     console.log(`Propagated draw ${draw.drawId} to Rinkeby: `, tx)
   }
 
-  const { drawId: lastMumbaiDrawId } = await tsunamiDrawSettingsHistoryMumbai.getNewestDrawSettings()
+  const { drawId: lastMumbaiDrawId } = await prizeDistributionHistoryMumbai.getNewestPrizeDistribution()
   const mumbaiTimelockElapsed = await drawCalculatorTimelockMumbai.hasElapsed()
   
   if (lastMumbaiDrawId < lastRinkebyDrawId && mumbaiTimelockElapsed) {
