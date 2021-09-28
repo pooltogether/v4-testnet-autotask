@@ -127,7 +127,8 @@ const {
   for (let drawId = Math.max(1, rinkebyOldestDraw.drawId); drawId <= rinkebyNewestDraw.drawId; drawId++) {
     console.log(`Checking Rinkeby draw ${drawId}`)
     try {
-      await prizeDistributionHistoryRinkeby.getDrawSetting(drawId)
+      const getDrawSetting =  await prizeDistributionHistoryRinkeby.getDrawSetting(drawId)
+      console.log(getDrawSetting, 'getDrawSetting')
       console.log(`Rinkeby Draw Settings exist for ${drawId}`)
     } catch (e) {
       
@@ -136,15 +137,22 @@ const {
 
       const beaconPeriodStartedAt = await drawBeacon.beaconPeriodStartedAt()
       const beaconPeriodSeconds = await drawBeacon.beaconPeriodSeconds()
+      // const draw = {
+      //   drawId: rinkebyNewestDraw.drawId,
+      //   timestamp: rinkebyNewestDraw.timestamp,
+      //   winningRandomNumber: rinkebyNewestDraw.winningRandomNumber,
+      //   beaconPeriodStartedAt: beaconPeriodStartedAt,
+      //   beaconPeriodSeconds: beaconPeriodSeconds,
+      // }
       const draw = {
-        drawId: rinkebyNewestDraw.drawId,
-        timestamp: rinkebyNewestDraw.timestamp,
-        winningRandomNumber: rinkebyNewestDraw.winningRandomNumber,
+        drawId: 1,
+        timestamp: rinkebyOldestDraw.timestamp,
+        winningRandomNumber: rinkebyOldestDraw.winningRandomNumber,
         beaconPeriodStartedAt: beaconPeriodStartedAt,
         beaconPeriodSeconds: beaconPeriodSeconds,
       }
       console.log('Draw for Rinkeby:', draw,)
-
+    
       const tx = await l1TimelockTriggerRinkeby.populateTransaction.push(draw, rinkebyDrawSettings)  
       
       const txRes = await rinkebyRelayer.sendTransaction({
@@ -153,6 +161,7 @@ const {
         speed: 'fast',
         gasLimit: 500000,
       });
+
       console.log(`Propagated draw ${drawId} to Rinkeby: `, txRes)
       break;
     }
@@ -173,12 +182,16 @@ const {
     }
     
     try {
-      await prizeDistributionHistoryMumbai.getDrawSetting(drawId)
+      const drawSettingsss  = await prizeDistributionHistoryMumbai.getDrawSetting(drawId)
+      console.log(drawSettingsss)
       console.log(`Mumbai Draw Settings exist for ${drawId}`)
     } catch (e) {
 
       console.log("Mumbai pushing draw ", draw)
       console.log("Mumbai pushing drawSettings", mumbaiDrawSettings)
+
+      const pzHis =  await prizeDistributionHistoryRinkeby.getOldestDrawSettings()
+      console.log(pzHis, 'pzHis')
 
       const tx = await l2TimelockTriggerMumbai.populateTransaction.pushDrawSettings(draw.drawId, mumbaiDrawSettings)
       const txRes = await mumbaiRelayer.sendTransaction({
