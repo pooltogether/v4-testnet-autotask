@@ -542,11 +542,12 @@
 
 "@pooltogether/v4-core@github://pooltogether/v4-core":
   version "1.0.0-beta.1"
-  resolved "git+ssh://git@github.com/pooltogether/v4-core.git#30857af5a775c3e8122b05985e147594dfc5ebd1"
+  resolved "git+ssh://git@github.com/pooltogether/pooltogether-contract-tsunami.git#718edafa0dc3427136193f86e96a8d96d2ddc74c"
   dependencies:
     "@openzeppelin/contracts" "^4.3.1"
     "@pooltogether/fixed-point" "1.0.0"
     "@pooltogether/owner-manager-contracts" "1.1.0"
+    "@pooltogether/pooltogether-contracts" "3.4.4"
     "@pooltogether/pooltogether-rng-contracts" "1.4.0"
     "@pooltogether/yield-source-interface" "1.0.2"
     deploy-eip-1820 "1.0.0"
@@ -565,13 +566,11 @@
 
 "@pooltogether/v4-testnet@github://pooltogether/v4-testnet#update-names":
   version "1.0.0"
-  resolved "git+ssh://git@github.com/pooltogether/v4-testnet.git#0d89d37fe439ac15a183836680ea401ceefe1795"
+  resolved "git+ssh://git@github.com/pooltogether/v4-testnet.git#009e49f4ba84e78021888558cc376b2a60053ddf"
   dependencies:
-    "@pooltogether/draw-calculator-js" "github://pooltogether/draw-calculators-js"
     "@pooltogether/owner-manager-contracts" "1.1.0"
-    "@pooltogether/v4-core" "github://pooltogether/v4-core"
-    "@pooltogether/v4-periphery" "github://pooltogether/v4-periphery#master"
-    "@pooltogether/v4-timelocks" "github://pooltogether/v4-timelocks#master"
+    "@pooltogether/v4-core" "github://pooltogether/pooltogether-contract-tsunami"
+    "@pooltogether/v4-oracle-timelocks" "github://pooltogether/v4-oracle-timelocks"
     "@pooltogether/yield-source-interface" "^1.1.0"
 
 "@pooltogether/yield-source-interface@1.0.2":
