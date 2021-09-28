@@ -491,9 +491,9 @@
   resolved "https://registry.yarnpkg.com/@pooltogether/current-pool-data/-/current-pool-data-3.6.0.tgz#5814f91342c81ca595e18dbed85aa4a37b7b4c76"
   integrity sha512-soPqbmTNk3VER6fbkTupck70sDAgnQ/2ZxnAybArr4Rp9xPu0T9DdnU197yFmUqN8i1eEg1F6q9zWlXQm4T3zw==
 
-"@pooltogether/draw-calculator-js-sdk@github://pooltogether/draw-calculators-js":
-  version "1.0.0-beta.16"
-  resolved "git+ssh://git@github.com/pooltogether/draw-calculators-js.git#5599b42f644f1f1d42f0f5feabae6f238e2b1b06"
+"@pooltogether/draw-calculator-js@github://pooltogether/draw-calculators-js":
+  version "1.0.0-beta.17"
+  resolved "git+ssh://git@github.com/pooltogether/draw-calculators-js.git#6cb1b55b6d4dcb74ab97cbeae4dd18743e530dfc"
   dependencies:
     chalk "^4.1.2"
     debug "^4.3.2"
@@ -542,7 +542,7 @@
 
 "@pooltogether/v4-core@github://pooltogether/v4-core":
   version "1.0.0-beta.1"
-  resolved "git+ssh://git@github.com/pooltogether/v4-core.git#fcfd929fb46373632efd8086ea1918fbf284d516"
+  resolved "git+ssh://git@github.com/pooltogether/v4-core.git#30857af5a775c3e8122b05985e147594dfc5ebd1"
   dependencies:
     "@openzeppelin/contracts" "^4.3.1"
     "@pooltogether/fixed-point" "1.0.0"
@@ -557,7 +557,7 @@
 
 "@pooltogether/v4-periphery@github://pooltogether/v4-periphery#master":
   version "1.0.0-beta.1"
-  resolved "git+ssh://git@github.com/pooltogether/v4-periphery.git#aefec9e182b76ce5c09f5e64f8d67b392b581c63"
+  resolved "git+ssh://git@github.com/pooltogether/v4-periphery.git#f12d4ee17239ab163c267dba9b0038efe2ab8992"
   dependencies:
     "@openzeppelin/contracts" "^4.3.2"
     "@pooltogether/v4-core" "github://pooltogether/v4-core"
@@ -565,9 +565,9 @@
 
 "@pooltogether/v4-testnet@github://pooltogether/v4-testnet#update-names":
   version "1.0.0"
-  resolved "git+ssh://git@github.com/pooltogether/v4-testnet.git#547442252c69fdfcbf0d88b85f693ff9f68856cf"
+  resolved "git+ssh://git@github.com/pooltogether/v4-testnet.git#0d89d37fe439ac15a183836680ea401ceefe1795"
   dependencies:
-    "@pooltogether/draw-calculator-js-sdk" "github://pooltogether/draw-calculators-js"
+    "@pooltogether/draw-calculator-js" "github://pooltogether/draw-calculators-js"
     "@pooltogether/owner-manager-contracts" "1.1.0"
     "@pooltogether/v4-core" "github://pooltogether/v4-core"
     "@pooltogether/v4-periphery" "github://pooltogether/v4-periphery#master"
