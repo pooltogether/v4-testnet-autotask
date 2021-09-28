@@ -1,13 +1,6 @@
-const { Relayer } = require('defender-relay-client');
 const ethers = require('ethers')
-
-const { 
-  getContracts,
-} = require('./contracts')
-const{ getTotalEligibleTickets} = require('./helpers')
-
-const toWei = ethers.utils.parseEther
-
+const { Relayer } = require('defender-relay-client');
+const { getContracts } = require('./contracts')
 async function handler(event) {
   const rinkebyRelayer = new Relayer(event);
   const {
@@ -17,8 +10,7 @@ async function handler(event) {
   } = event.secrets;
   const mumbaiRelayer = new Relayer({apiKey: mumbaiRelayerApiKey, apiSecret: mumbaiRelayerSecret})
 
-const {ethereumProvider,
-  polygonProvider,
+const {
   drawBeacon,
   drawHistoryRinkeby,
   prizeDistributionHistoryRinkeby,
@@ -28,7 +20,8 @@ const {ethereumProvider,
   drawPrizesRinkeby,
   drawPrizesMumbai,
   l1TimelockTriggerRinkeby,
-  l2TimelockTriggerMumbai,} = getContracts(infuraApiKey)
+  l2TimelockTriggerMumbai
+} = getContracts(infuraApiKey)
 
   const nextDrawId = await drawBeacon.nextDrawId()
   const getLastRngRequestId = await drawBeacon.getLastRngRequestId()
@@ -36,12 +29,16 @@ const {ethereumProvider,
   const beaconPeriodStartedAt = await drawBeacon.beaconPeriodStartedAt()
   const isBeaconPeriodOver = await drawBeacon.isRngRequested()
   const beaconPeriodSeconds = await drawBeacon.beaconPeriodSeconds()
-  console.log('DrawBeacon beaconPeriodStartedAt:', beaconPeriodStartedAt.toString())
-  console.log('DrawBeacon beaconPeriodSeconds:', beaconPeriodSeconds.toString())
-  console.log('DrawBeacon IS BeaconPeriodOver:', isBeaconPeriodOver)
+
+  console.log('DrawBeacon Beacon PeriodStartedAt:', beaconPeriodStartedAt.toString())
+  console.log('DrawBeacon Beacon PeriodSeconds:', beaconPeriodSeconds.toString())
+  console.log('DrawBeacon Beacon PeriodOver:', isBeaconPeriodOver)
+  
+  console.log('Draw Settings')
   console.log('DrawBeacon next Draw.drawId:', nextDrawId)
   console.log('DrawBeacon RNG ID:', getLastRngRequestId)
 
+  console.log('Is RNG Requested:', await drawBeacon.isRngRequested())
   console.log('Can Start Draw:', await drawBeacon.canStartDraw())
   console.log('Can Complete Draw:', await drawBeacon.canCompleteDraw())
 
@@ -95,7 +92,6 @@ const {ethereumProvider,
     endOffsetTimestamp: 0
   }
 
-
   const rinkebyTicketFraction = parseFloat(ethers.utils.formatEther(rinkebyPrizeTickets.mul(ethers.utils.parseEther('1')).div(totalEligibleTickets)))
   const mumbaiTicketFraction = parseFloat(ethers.utils.formatEther(mumbaiPrizeTickets.mul(ethers.utils.parseEther('1')).div(totalEligibleTickets)))
 
@@ -148,7 +144,6 @@ const {ethereumProvider,
         beaconPeriodSeconds: beaconPeriodSeconds,
       }
       console.log('Draw for Rinkeby:', draw,)
-
 
       const tx = await l1TimelockTriggerRinkeby.populateTransaction.push(draw, rinkebyDrawSettings)  
       
