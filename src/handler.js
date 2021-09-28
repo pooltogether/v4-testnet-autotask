@@ -7,7 +7,7 @@ const PrizeDistributionHistoryRinkeby = require('@pooltogether/v4-testnet/deploy
 const PrizeDistributionHistoryMumbai = require('@pooltogether/v4-testnet/deployments/mumbai/PrizeDistributionHistory.json')
 const ReserveRinkeby = require('@pooltogether/v4-testnet/deployments/rinkeby/Reserve.json')
 const ReserveMumbai = require('@pooltogether/v4-testnet/deployments/mumbai/Reserve.json')
-const DrawSettingsTimelockTriggerRinkeby = require('@pooltogether/v4-testnet/deployments/rinkeby/DrawSettingsTimelockTrigger.json')
+const L1TimelockTrigger = require('@pooltogether/v4-testnet/deployments/rinkeby/DrawSettingsTimelockTrigger.json')
 const L2TimelockTriggerMumbai = require('@pooltogether/v4-testnet/deployments/mumbai/L2TimelockTrigger.json')
 
 async function calculatePicks(totalPicks, draw, drawSettings, reserveToCalculate, otherReserve) {
@@ -49,8 +49,8 @@ async function handler(event) {
   const drawCalculatorTimelockMumbai = new ethers.Contract(DrawCalculatorTimelockMumbai.address, DrawCalculatorTimelockMumbai.abi, polygonProvider)
   const reserveRinkeby = new ethers.Contract(ReserveRinkeby.address, ReserveRinkeby.abi, ethereumProvider)
   const reserveMumbai = new ethers.Contract(ReserveMumbai.address, ReserveMumbai.abi, polygonProvider)
-  const drawSettingsTimelockTriggerRinkeby = new ethers.Contract(DrawSettingsTimelockTriggerRinkeby.address, DrawSettingsTimelockTriggerRinkeby.abi, ethereumProvider)
-  const fullTimelockTriggerMumbai = new ethers.Contract(L2TimelockTriggerMumbai.address, L2TimelockTriggerMumbai.abi, polygonProvider)
+  const l1TimelockTriggerRinkeby = new ethers.Contract(L1TimelockTrigger.address, L1TimelockTrigger.abi, ethereumProvider)
+  const l2TimelockTriggerMumbai = new ethers.Contract(L2TimelockTriggerMumbai.address, L2TimelockTriggerMumbai.abi, polygonProvider)
 
   const nextDrawId = await drawBeacon.nextDrawId()
 
@@ -107,7 +107,7 @@ async function handler(event) {
     // calculate the fraction of picks based on reserve capture
     const picksRinkeby = await calculatePicks(draw, drawSettings, reserveRinkeby, reserveMumbai)
 
-    const txData = await drawSettingsTimelockTriggerRinkeby.populateTransaction.pushDrawSettings(
+    const txData = await l1TimelockTriggerRinkeby.populateTransaction.pushDrawSettings(
       draw.drawId,
       {
         ...drawSettings,
@@ -133,7 +133,7 @@ async function handler(event) {
     
     const picksMumbai = await calculatePicks(draw, lastRinkebyDrawSettings, reserveMumbai, reserveRinkeby)
 
-    const txData = await fullTimelockTriggerMumbai.populateTransaction.push(draw, {
+    const txData = await l2TimelockTriggerMumbai.populateTransaction.push(draw, {
       ...lastRinkebyDrawSettings,
       numberOfPicks: picksMumbai
     })
