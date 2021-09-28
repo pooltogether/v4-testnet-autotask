@@ -95,16 +95,6 @@ async function handler(event) {
     endOffsetTimestamp: 0
   }
 
-//   struct PrizeDistribution {
-//     uint8 bitRangeSize;
-//     uint8 matchCardinality;
-//     uint32 startOffsetTimestamp;
-//     uint32 endOffsetTimestamp;
-//     uint32 maxPicksPerUser;
-//     uint136 numberOfPicks;
-//     uint32[] distributions;
-//     uint256 prize;
-// }
 
   const rinkebyTicketFraction = parseFloat(ethers.utils.formatEther(rinkebyPrizeTickets.mul(ethers.utils.parseEther('1')).div(totalEligibleTickets)))
   const mumbaiTicketFraction = parseFloat(ethers.utils.formatEther(mumbaiPrizeTickets.mul(ethers.utils.parseEther('1')).div(totalEligibleTickets)))
@@ -146,10 +136,10 @@ async function handler(event) {
       console.log(`Rinkeby Draw Settings exist for ${drawId}`)
     } catch (e) {
       
-      console.log("pushing draw to l1TimelockTriggerRinkeby", drawId)
-      // console.log("pushing draw to l1TimelockTriggerRinkeby rinkebyDrawSettings", rinkebyDrawSettings)
-    
-      const tx = await l1TimelockTriggerRinkeby.populateTransaction.push({drawId:drawId, timestamp: 1, winningRandomNumber: 100, beaconPeriodStartedAt: 10, beaconPeriodSeconds: 60 }, rinkebyDrawSettings)  
+      console.log("pushing draw to L1TimelockTriggerRinkeby", drawId)
+      const draw = rinkebyNewestDraw
+      console.log(rinkebyNewestDraw, 'rinkebyNewestDraw')
+      const tx = await l1TimelockTriggerRinkeby.populateTransaction.push(draw, rinkebyDrawSettings)  
       
       const txRes = await rinkebyRelayer.sendTransaction({
         data: tx.data,
