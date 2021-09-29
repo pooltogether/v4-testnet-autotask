@@ -20,6 +20,7 @@ async function calculatePicks(draw, prizeDistributions, reserveToCalculate, othe
   return Math.floor(numberOfPicks)
 }
 
+
 async function handler(event) {
   const rinkebyRelayer = new Relayer(event);
   const {
@@ -198,7 +199,9 @@ const {
       draw.drawId,
       {
         ...prizeDistributions,
-        numberOfPicks: picksRinkeby
+        // numberOfPicks: picksRinkeby
+        // Temporary fix to get the machine running
+        numberOfPicks: ethers.BigNumber.from(ethers.utils.parseEther("1"))
       }
     )
 
@@ -221,86 +224,15 @@ const {
   } catch (e) {
   }
 
-<<<<<<< HEAD
-  console.log(`Checking Rinkeby for drawId ${Math.max(1, rinkebyOldestDraw.drawId)} to ${rinkebyNewestDraw.drawId}`)  
-
-  for (let drawId = Math.max(1, rinkebyOldestDraw.drawId); drawId <= rinkebyNewestDraw.drawId; drawId++) {
-    console.log(`Checking Rinkeby draw ${drawId}`)
-    try {
-      const getDrawSetting =  await prizeDistributionHistoryRinkeby.getDrawSetting(drawId)
-      console.log(getDrawSetting, 'getDrawSetting')
-      console.log(`Rinkeby Draw Settings exist for ${drawId}`)
-    } catch (e) {
-      
-      console.log(rinkebyNewestDraw, 'rinkebyNewestDraw')
-      console.log("pushing draw to L1TimelockTriggerRinkeby", drawId)
-
-      const beaconPeriodStartedAt = await drawBeacon.beaconPeriodStartedAt()
-      const beaconPeriodSeconds = await drawBeacon.beaconPeriodSeconds()
-      // const draw = {
-      //   drawId: rinkebyNewestDraw.drawId,
-      //   timestamp: rinkebyNewestDraw.timestamp,
-      //   winningRandomNumber: rinkebyNewestDraw.winningRandomNumber,
-      //   beaconPeriodStartedAt: beaconPeriodStartedAt,
-      //   beaconPeriodSeconds: beaconPeriodSeconds,
-      // }
-      const draw = {
-        drawId: 1,
-        timestamp: rinkebyOldestDraw.timestamp,
-        winningRandomNumber: rinkebyOldestDraw.winningRandomNumber,
-        beaconPeriodStartedAt: beaconPeriodStartedAt,
-        beaconPeriodSeconds: beaconPeriodSeconds,
-      }
-      console.log('Draw for Rinkeby:', draw,)
-    
-      const tx = await l1TimelockTriggerRinkeby.populateTransaction.push(draw, rinkebyDrawSettings)  
-      
-      const txRes = await rinkebyRelayer.sendTransaction({
-        data: tx.data,
-        to: tx.to,
-        speed: 'fast',
-        gasLimit: 500000,
-      });
-
-      console.log(`Propagated draw ${drawId} to Rinkeby: `, txRes)
-      break;
-    }
-  }
-=======
   console.log(`Last Mumbai prize distribution draw id is ${lastMumbaiPrizeDistributionDrawId}`)
 
   const mumbaiTimelockElapsed = await drawCalculatorTimelockMumbai.hasElapsed()
->>>>>>> e0497448c97aa39de0b8bbcc787f77433d4cf9b5
   
   if (lastMumbaiPrizeDistributionDrawId < lastRinkebyPrizeDistributionDrawId && mumbaiTimelockElapsed) {
     const drawId = lastMumbaiPrizeDistributionDrawId + 1
     const draw = await drawHistoryRinkeby.getDraw(drawId)
     const prizeDistribution = await prizeDistributionHistoryRinkeby.getPrizeDistribution(drawId)
     
-<<<<<<< HEAD
-    try {
-      const drawSettingsss  = await prizeDistributionHistoryMumbai.getDrawSetting(drawId)
-      console.log(drawSettingsss)
-      console.log(`Mumbai Draw Settings exist for ${drawId}`)
-    } catch (e) {
-
-      console.log("Mumbai pushing draw ", draw)
-      console.log("Mumbai pushing drawSettings", mumbaiDrawSettings)
-
-      const pzHis =  await prizeDistributionHistoryRinkeby.getOldestDrawSettings()
-      console.log(pzHis, 'pzHis')
-
-      const tx = await l2TimelockTriggerMumbai.populateTransaction.pushDrawSettings(draw.drawId, mumbaiDrawSettings)
-      const txRes = await mumbaiRelayer.sendTransaction({
-        data: tx.data,
-        to: tx.to,
-        speed: 'fast',
-        gasLimit: 500000,
-      });
-      console.log(`Propagated draw ${drawId} to Mumbai: `, txRes)
-      break;
-    }
-=======
     const picksMumbai = await calculatePicks(draw, prizeDistribution, reserveMumbai, reserveRinkeby)
 
     console.log(`Mumbai draw ${drawId} has ${picksMumbai} picks`)
@@ -323,7 +255,6 @@ const {
     });
 
     console.log(`Propagated draw ${draw.drawId} to Mumbai: `, tx)
->>>>>>> e0497448c97aa39de0b8bbcc787f77433d4cf9b5
   }
 
   console.log("Handler Complete!")
