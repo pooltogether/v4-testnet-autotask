@@ -201,7 +201,8 @@ const {
         ...prizeDistributions,
         // numberOfPicks: picksRinkeby
         // Temporary fix to get the machine running
-        numberOfPicks: ethers.BigNumber.from(ethers.utils.parseEther("1"))
+        // numberOfPicks: ethers.BigNumber.from(ethers.utils.parseEther("1"))
+        numberOfPicks: ethers.BigNumber.from('1000')
       }
     )
 
