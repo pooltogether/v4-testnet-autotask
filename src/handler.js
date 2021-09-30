@@ -65,60 +65,53 @@ const {
   console.log('Can Start Draw:', await drawBeacon.canStartDraw())
   console.log('Can Complete Draw:', await drawBeacon.canCompleteDraw())
 
-  const timestamp5Minutes = Math.floor(beaconPeriodStartedAt / 300)
-  const doYield = timestamp5Minutes % 2 == 0;
-
-  console.log(`timestamp5Minutes: ${timestamp5Minutes}`)
-  
-  if (doYield) {
-    {
-      console.log(`Yielding on rinkeby...`)
-      const txData = await mockYieldSourceRinkeby.populateTransaction.yield(ethers.utils.parseEther("100"))
-      const tx = await rinkebyRelayer.sendTransaction({
-        data: txData.data,
-        to: txData.to,
-        speed: 'fast',
-        gasLimit: 500000,
-      });
-      console.log(`yielded rinkeby: ${tx.hash}`)
-    }
-  
-    {
-      console.log(`Yielding on mumbai...`)
-      const txData = await mockYieldSourceMumbai.populateTransaction.yield(ethers.utils.parseEther("100"))
-      const tx = await mumbaiRelayer.sendTransaction({
-        data: txData.data,
-        to: txData.to,
-        speed: 'fast',
-        gasLimit: 500000,
-      });
-      console.log(`yielded mumbai: ${tx.hash}`)
-    }
-  
-    {
-      console.log(`Flush on rinkeby...`)
-      const txData = await prizeFlushRinkeby.populateTransaction.flush()
-      const tx = await rinkebyRelayer.sendTransaction({
-        data: txData.data,
-        to: txData.to,
-        speed: 'fast',
-        gasLimit: 500000,
-      });
-      console.log(`flushed rinkeby: ${tx.hash}`)
-    }
-  
-    {
-      console.log(`Flush on mumbai...`)
-      const txData = await prizeFlushMumbai.populateTransaction.flush()
-      const tx = await mumbaiRelayer.sendTransaction({
-        data: txData.data,
-        to: txData.to,
-        speed: 'fast',
-        gasLimit: 500000,
-      });
-      console.log(`flushed mumbai: ${tx.hash}`)
-    }  
+  {
+    console.log(`Yielding on rinkeby...`)
+    const txData = await mockYieldSourceRinkeby.populateTransaction.yield(ethers.utils.parseEther("10"))
+    const tx = await rinkebyRelayer.sendTransaction({
+      data: txData.data,
+      to: txData.to,
+      speed: 'fast',
+      gasLimit: 500000,
+    });
+    console.log(`yielded rinkeby: ${tx.hash}`)
   }
+
+  {
+    console.log(`Yielding on mumbai...`)
+    const txData = await mockYieldSourceMumbai.populateTransaction.yield(ethers.utils.parseEther("10"))
+    const tx = await mumbaiRelayer.sendTransaction({
+      data: txData.data,
+      to: txData.to,
+      speed: 'fast',
+      gasLimit: 500000,
+    });
+    console.log(`yielded mumbai: ${tx.hash}`)
+  }
+
+  {
+    console.log(`Flush on rinkeby...`)
+    const txData = await prizeFlushRinkeby.populateTransaction.flush()
+    const tx = await rinkebyRelayer.sendTransaction({
+      data: txData.data,
+      to: txData.to,
+      speed: 'fast',
+      gasLimit: 500000,
+    });
+    console.log(`flushed rinkeby: ${tx.hash}`)
+  }
+
+  {
+    console.log(`Flush on mumbai...`)
+    const txData = await prizeFlushMumbai.populateTransaction.flush()
+    const tx = await mumbaiRelayer.sendTransaction({
+      data: txData.data,
+      to: txData.to,
+      speed: 'fast',
+      gasLimit: 500000,
+    });
+    console.log(`flushed mumbai: ${tx.hash}`)
+  }  
   
   if (await drawBeacon.canStartDraw()) {
     console.log(`Starting draw ${nextDrawId}...`)
