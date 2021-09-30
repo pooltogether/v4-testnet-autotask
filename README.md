@@ -1,6 +1,6 @@
-# PoolTogether V3 Reward Defender Autotask
+# V4 Testnet Defender Autotask
 
-This project implements an Autotask for [OpenZeppelin Defender](https://defender.openzeppelin.com/) that rewards the PoolTogether V3 prize strategies automatically.
+This project implements an Autotask for [OpenZeppelin Defender](https://defender.openzeppelin.com/) to run the V4 Testnet.
 
 # Setup
 
