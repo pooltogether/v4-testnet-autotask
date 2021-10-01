@@ -208,7 +208,7 @@ const {
       gasLimit: 500000,
     });
 
-    console.log(`Propagated draw ${draw.drawId} to Rinkeby: `, tx)
+    console.log(`Propagated prize distribution for draw ${draw.drawId} to Rinkeby: `, tx)
   }
 
   let lastMumbaiPrizeDistributionDrawId = 0
