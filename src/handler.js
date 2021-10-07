@@ -34,22 +34,22 @@ const {
   reserveRinkeby,
   reserveMumbai,
   drawBeacon,
-  drawHistoryRinkeby,
+  drawBufferRinkeby,
   prizeFlushRinkeby,
   prizeFlushMumbai,
-  prizeDistributionHistoryRinkeby,
-  prizeDistributionHistoryMumbai,
+  prizeDistributionBufferRinkeby,
+  prizeDistributionBufferMumbai,
   drawCalculatorTimelockRinkeby,
   drawCalculatorTimelockMumbai,
   l1TimelockTriggerRinkeby,
   l2TimelockTriggerMumbai
 } = getContracts(infuraApiKey)
 
-  const nextDrawId = await drawBeacon.nextDrawId()
+  const nextDrawId = await drawBeacon.getNextDrawId()
   const getLastRngRequestId = await drawBeacon.getLastRngRequestId()
-  const beaconPeriodStartedAt = await drawBeacon.beaconPeriodStartedAt()
+  const beaconPeriodStartedAt = await drawBeacon.getBeaconPeriodStartedAt()
   const isBeaconPeriodOver = await drawBeacon.isRngRequested()
-  const beaconPeriodSeconds = await drawBeacon.beaconPeriodSeconds()
+  const beaconPeriodSeconds = await drawBeacon.getBeaconPeriodSeconds()
 
   console.log('DrawBeacon Beacon PeriodStartedAt:', beaconPeriodStartedAt.toString())
   console.log('DrawBeacon Beacon PeriodSeconds:', beaconPeriodSeconds.toString())
@@ -63,30 +63,7 @@ const {
   console.log('Can Start Draw:', await drawBeacon.canStartDraw())
   console.log('Can Complete Draw:', await drawBeacon.canCompleteDraw())
 
-  {
-    console.log(`Yielding on rinkeby...`)
-    const txData = await mockYieldSourceRinkeby.populateTransaction.yield(ethers.utils.parseEther("10"))
-    const tx = await rinkebyRelayer.sendTransaction({
-      data: txData.data,
-      to: txData.to,
-      speed: 'fast',
-      gasLimit: 500000,
-    });
-    console.log(`yielded rinkeby: ${tx.hash}`)
-  }
-
-  {
-    console.log(`Yielding on mumbai...`)
-    const txData = await mockYieldSourceMumbai.populateTransaction.yield(ethers.utils.parseEther("10"))
-    const tx = await mumbaiRelayer.sendTransaction({
-      data: txData.data,
-      to: txData.to,
-      speed: 'fast',
-      gasLimit: 500000,
-    });
-    console.log(`yielded mumbai: ${tx.hash}`)
-  }
-
+  
   {
     console.log(`Flush on rinkeby...`)
     const txData = await prizeFlushRinkeby.populateTransaction.flush()
@@ -139,7 +116,7 @@ const {
 
   let newestDraw
   try {
-    newestDraw = await drawHistoryRinkeby.getNewestDraw()
+    newestDraw = await drawBufferRinkeby.getNewestDraw()
   } catch (e) {
     console.warn(e)
     console.log("Nope.  Nothing yet.")
@@ -148,7 +125,7 @@ const {
   
   let lastRinkebyPrizeDistributionDrawId = 0
   try {
-    const { drawId } = await prizeDistributionHistoryRinkeby.getNewestPrizeDistribution()
+    const { drawId } = await prizeDistributionBufferRinkeby.getNewestPrizeDistribution()
     lastRinkebyPrizeDistributionDrawId = drawId
   } catch (e) {
   }
@@ -160,7 +137,7 @@ const {
   if (lastRinkebyPrizeDistributionDrawId < newestDraw.drawId && rinkebyTimelockElapsed) {
     // get the draw
     const drawId = lastRinkebyPrizeDistributionDrawId + 1
-    const draw = await drawHistoryRinkeby.getDraw(drawId)
+    const draw = await drawBufferRinkeby.getDraw(drawId)
 
     const beaconPeriod = draw.beaconPeriodSeconds
 
@@ -211,7 +188,7 @@ const {
 
   let lastMumbaiPrizeDistributionDrawId = 0
   try {
-    const { drawId } = await prizeDistributionHistoryMumbai.getNewestPrizeDistribution()
+    const { drawId } = await prizeDistributionBufferMumbai.getNewestPrizeDistribution()
     lastMumbaiPrizeDistributionDrawId = drawId
   } catch (e) {
   }
@@ -222,8 +199,8 @@ const {
   
   if (lastMumbaiPrizeDistributionDrawId < lastRinkebyPrizeDistributionDrawId && mumbaiTimelockElapsed) {
     const drawId = lastMumbaiPrizeDistributionDrawId + 1
-    const draw = await drawHistoryRinkeby.getDraw(drawId)
-    const prizeDistribution = await prizeDistributionHistoryRinkeby.getPrizeDistribution(drawId)
+    const draw = await drawBufferRinkeby.getDraw(drawId)
+    const prizeDistribution = await prizeDistributionBufferRinkeby.getPrizeDistribution(drawId)
     
     const picksMumbai = await calculatePicks(draw, prizeDistribution, reserveMumbai, reserveRinkeby)
 
