@@ -1,7 +1,5 @@
 const ethers = require('ethers')
 
-const DrawBeaconRinkeby = require('@pooltogether/v4-testnet/deployments/rinkeby/DrawBeacon.json')
-
 const DrawBufferRinkeby = require('@pooltogether/v4-testnet/deployments/rinkeby/DrawBuffer.json')
 
 const PrizeDistributionBufferRinkeby = require('@pooltogether/v4-testnet/deployments/rinkeby/PrizeDistributionBuffer.json')
@@ -19,9 +17,6 @@ const TicketMumbai = require('@pooltogether/v4-testnet/deployments/mumbai/Ticket
 const PrizeDistributorRinkeby = require('@pooltogether/v4-testnet/deployments/rinkeby/PrizeDistributor.json')
 const PrizeDistributorMumbai = require('@pooltogether/v4-testnet/deployments/mumbai/PrizeDistributor.json')
 
-const PrizeFlushRinkeby = require('@pooltogether/v4-testnet/deployments/rinkeby/PrizeFlush.json')
-const PrizeFlushMumbai = require('@pooltogether/v4-testnet/deployments/mumbai/PrizeFlush.json')
-
 const ReserveRinkeby = require('@pooltogether/v4-testnet/deployments/rinkeby/Reserve.json')
 const ReserveMumbai = require('@pooltogether/v4-testnet/deployments/mumbai/Reserve.json')
 
@@ -29,8 +24,6 @@ function getContracts(infuraApiKey) {
   // first let's check the beacon
   const ethereumProvider = new ethers.providers.InfuraProvider('rinkeby', infuraApiKey)
   const polygonProvider = new ethers.providers.JsonRpcProvider(`https://polygon-mumbai.infura.io/v3/${infuraApiKey}`)
-  
-  const drawBeacon = new ethers.Contract(DrawBeaconRinkeby.address, DrawBeaconRinkeby.abi, ethereumProvider)
   
   const drawBufferRinkeby = new ethers.Contract(DrawBufferRinkeby.address, DrawBufferRinkeby.abi, ethereumProvider)
   
@@ -42,9 +35,6 @@ function getContracts(infuraApiKey) {
   
   const prizeDistributorRinkeby = new ethers.Contract(PrizeDistributorRinkeby.address, PrizeDistributorRinkeby.abi, ethereumProvider)
   const prizeDistributorMumbai = new ethers.Contract(PrizeDistributorMumbai.address, PrizeDistributorMumbai.abi, polygonProvider)
-  
-  const prizeFlushRinkeby = new ethers.Contract(PrizeFlushRinkeby.address, PrizeFlushRinkeby.abi, ethereumProvider)
-  const prizeFlushMumbai = new ethers.Contract(PrizeFlushMumbai.address, PrizeFlushMumbai.abi, polygonProvider)
   
   const reserveRinkeby = new ethers.Contract(ReserveRinkeby.address, ReserveRinkeby.abi, ethereumProvider)
   const reserveMumbai = new ethers.Contract(ReserveMumbai.address, ReserveMumbai.abi, polygonProvider)
@@ -58,10 +48,7 @@ function getContracts(infuraApiKey) {
   return {
     ethereumProvider,
     polygonProvider,
-    drawBeacon,
     drawBufferRinkeby,
-    prizeFlushRinkeby,
-    prizeFlushMumbai,
     prizeDistributionBufferRinkeby,
     prizeDistributionBufferMumbai,
     drawCalculatorTimelockRinkeby,
