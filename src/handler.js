@@ -37,8 +37,6 @@ const {
   drawHistoryRinkeby,
   prizeFlushRinkeby,
   prizeFlushMumbai,
-  mockYieldSourceRinkeby,
-  mockYieldSourceMumbai,
   prizeDistributionHistoryRinkeby,
   prizeDistributionHistoryMumbai,
   drawCalculatorTimelockRinkeby,

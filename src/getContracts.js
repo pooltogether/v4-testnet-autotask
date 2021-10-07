@@ -4,8 +4,6 @@ const DrawBeaconRinkeby = require('@pooltogether/v4-testnet/deployments/rinkeby/
 const DrawHistoryRinkeby = require('@pooltogether/v4-testnet/deployments/rinkeby/DrawHistory.json')
 const PrizeDistributionHistoryRinkeby = require('@pooltogether/v4-testnet/deployments/rinkeby/PrizeDistributionHistory.json')
 const PrizeDistributionHistoryMumbai = require('@pooltogether/v4-testnet/deployments/mumbai/PrizeDistributionHistory.json')
-const MockYieldSourceRinkeby = require('@pooltogether/v4-testnet/deployments/rinkeby/MockYieldSource.json')
-const MockYieldSourceMumbai = require('@pooltogether/v4-testnet/deployments/mumbai/MockYieldSource.json')
 const DrawCalculatorTimelockRinkeby = require('@pooltogether/v4-testnet/deployments/rinkeby/DrawCalculatorTimelock.json')
 const DrawCalculatorTimelockMumbai = require('@pooltogether/v4-testnet/deployments/mumbai/DrawCalculatorTimelock.json')
 const L1TimelockTriggerRinkeby = require('@pooltogether/v4-testnet/deployments/rinkeby/L1TimelockTrigger.json')
@@ -26,8 +24,6 @@ function getContracts(infuraApiKey) {
   
   const drawBeacon = new ethers.Contract(DrawBeaconRinkeby.address, DrawBeaconRinkeby.abi, ethereumProvider)
   const drawHistoryRinkeby = new ethers.Contract(DrawHistoryRinkeby.address, DrawHistoryRinkeby.abi, ethereumProvider)
-  const mockYieldSourceRinkeby = new ethers.Contract(MockYieldSourceRinkeby.address, MockYieldSourceRinkeby.abi, ethereumProvider)
-  const mockYieldSourceMumbai = new ethers.Contract(MockYieldSourceMumbai.address, MockYieldSourceMumbai.abi, polygonProvider)
   const prizeDistributionHistoryRinkeby = new ethers.Contract(PrizeDistributionHistoryRinkeby.address, PrizeDistributionHistoryRinkeby.abi, ethereumProvider)
   const prizeDistributionHistoryMumbai = new ethers.Contract(PrizeDistributionHistoryMumbai.address, PrizeDistributionHistoryMumbai.abi, polygonProvider)
   const ticketRinkeby = new ethers.Contract(TicketRinkeby.address, TicketRinkeby.abi, ethereumProvider)
@@ -44,8 +40,6 @@ function getContracts(infuraApiKey) {
   const l2TimelockTriggerMumbai = new ethers.Contract(L2TimelockTriggerMumbai.address, L2TimelockTriggerMumbai.abi, polygonProvider)
 
   return {
-    mockYieldSourceRinkeby,
-    mockYieldSourceMumbai,
     ethereumProvider,
     polygonProvider,
     drawBeacon,
