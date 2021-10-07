@@ -21,6 +21,7 @@ async function calculatePicks(draw, prizeDistributions, reserveToCalculate, othe
 
     numberOfPicks = reserveAccumulated.mul(totalPicks).div(otherReserveAccumulated.add(reserveAccumulated))
   } else {
+    console.log(`calculatePicks setting numberOfPicks: 0`)
     numberOfPicks = ethers.BigNumber.from('0')
   }
   console.log(`returning numberOfPicks ${Math.floor(numberOfPicks)}`)
