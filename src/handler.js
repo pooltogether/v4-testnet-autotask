@@ -8,15 +8,23 @@ async function calculatePicks(draw, prizeDistributions, reserveToCalculate, othe
   const sampleEndTimestamp = draw.timestamp - prizeDistributions.endTimestampOffset
   
   const reserveAccumulated = await reserveToCalculate.getReserveAccumulatedBetween(sampleStartTimestamp, sampleEndTimestamp)
+
+  console.log(`${reserveToCalculate.address} reserveAccumulated ${ethers.utils.formatEther(reserveAccumulated)}`)
+
   const otherReserveAccumulated = await otherReserve.getReserveAccumulatedBetween(sampleStartTimestamp, sampleEndTimestamp)
+
+  console.log(`${otherReserve.address} otherReserveAccumulated ${ethers.utils.formatEther(otherReserveAccumulated)}`)
 
   let numberOfPicks
   if (reserveAccumulated.gt('0')) {
+    console.log(`reserveAccumulated gt 0 ..`)
+
     numberOfPicks = reserveAccumulated.mul(totalPicks).div(otherReserveAccumulated.add(reserveAccumulated))
   } else {
+    console.log(`calculatePicks setting numberOfPicks: 0`)
     numberOfPicks = ethers.BigNumber.from('0')
   }
-
+  console.log(`returning numberOfPicks ${Math.floor(numberOfPicks)}`)
   return Math.floor(numberOfPicks)
 }
 
@@ -33,115 +41,18 @@ async function handler(event) {
 const {
   reserveRinkeby,
   reserveMumbai,
-  drawBeacon,
-  drawHistoryRinkeby,
-  prizeFlushRinkeby,
-  prizeFlushMumbai,
-  mockYieldSourceRinkeby,
-  mockYieldSourceMumbai,
-  prizeDistributionHistoryRinkeby,
-  prizeDistributionHistoryMumbai,
+  drawBufferRinkeby,
+  prizeDistributionBufferRinkeby,
+  prizeDistributionBufferMumbai,
   drawCalculatorTimelockRinkeby,
   drawCalculatorTimelockMumbai,
   l1TimelockTriggerRinkeby,
   l2TimelockTriggerMumbai
 } = getContracts(infuraApiKey)
 
-  const nextDrawId = await drawBeacon.nextDrawId()
-  const getLastRngRequestId = await drawBeacon.getLastRngRequestId()
-  const beaconPeriodStartedAt = await drawBeacon.beaconPeriodStartedAt()
-  const isBeaconPeriodOver = await drawBeacon.isRngRequested()
-  const beaconPeriodSeconds = await drawBeacon.beaconPeriodSeconds()
-
-  console.log('DrawBeacon Beacon PeriodStartedAt:', beaconPeriodStartedAt.toString())
-  console.log('DrawBeacon Beacon PeriodSeconds:', beaconPeriodSeconds.toString())
-  console.log('DrawBeacon Beacon PeriodOver:', isBeaconPeriodOver)
-  
-  console.log('Draw Settings')
-  console.log('DrawBeacon next Draw.drawId:', nextDrawId)
-  console.log('DrawBeacon RNG ID:', getLastRngRequestId)
-
-  console.log('Is RNG Requested:', await drawBeacon.isRngRequested())
-  console.log('Can Start Draw:', await drawBeacon.canStartDraw())
-  console.log('Can Complete Draw:', await drawBeacon.canCompleteDraw())
-
-  {
-    console.log(`Yielding on rinkeby...`)
-    const txData = await mockYieldSourceRinkeby.populateTransaction.yield(ethers.utils.parseEther("10"))
-    const tx = await rinkebyRelayer.sendTransaction({
-      data: txData.data,
-      to: txData.to,
-      speed: 'fast',
-      gasLimit: 500000,
-    });
-    console.log(`yielded rinkeby: ${tx.hash}`)
-  }
-
-  {
-    console.log(`Yielding on mumbai...`)
-    const txData = await mockYieldSourceMumbai.populateTransaction.yield(ethers.utils.parseEther("10"))
-    const tx = await mumbaiRelayer.sendTransaction({
-      data: txData.data,
-      to: txData.to,
-      speed: 'fast',
-      gasLimit: 500000,
-    });
-    console.log(`yielded mumbai: ${tx.hash}`)
-  }
-
-  {
-    console.log(`Flush on rinkeby...`)
-    const txData = await prizeFlushRinkeby.populateTransaction.flush()
-    const tx = await rinkebyRelayer.sendTransaction({
-      data: txData.data,
-      to: txData.to,
-      speed: 'fast',
-      gasLimit: 500000,
-    });
-    console.log(`flushed rinkeby: ${tx.hash}`)
-  }
-
-  {
-    console.log(`Flush on mumbai...`)
-    const txData = await prizeFlushMumbai.populateTransaction.flush()
-    const tx = await mumbaiRelayer.sendTransaction({
-      data: txData.data,
-      to: txData.to,
-      speed: 'fast',
-      gasLimit: 500000,
-    });
-    console.log(`flushed mumbai: ${tx.hash}`)
-  }  
-  
-  if (await drawBeacon.canStartDraw()) {
-    console.log(`Starting draw ${nextDrawId}...`)
-    const tx = await drawBeacon.populateTransaction.startDraw()
-    const txRes = await rinkebyRelayer.sendTransaction({
-      data: tx.data,
-      to: tx.to,
-      speed: 'fast',
-      gasLimit: 500000,
-    });
-    console.log(`Started Draw ${nextDrawId}: ${txRes.hash}`)
-  }
-
-  let completedDraw = false
-  if (await drawBeacon.canCompleteDraw()) {
-    console.log(`Completing draw ${nextDrawId}...`)
-    const tx = await drawBeacon.populateTransaction.completeDraw()
-    const txRes = await rinkebyRelayer.sendTransaction({
-      data: tx.data,
-      to: tx.to,
-      speed: 'fast',
-      gasLimit: 500000,
-    });
-    console.log(`Completed Draw ${nextDrawId}: ${txRes.hash}`)
-    completedDraw = true
-  }
-
   let newestDraw
   try {
-    newestDraw = await drawHistoryRinkeby.getNewestDraw()
+    newestDraw = await drawBufferRinkeby.getNewestDraw()
   } catch (e) {
     console.warn(e)
     console.log("Nope.  Nothing yet.")
@@ -150,7 +61,7 @@ const {
   
   let lastRinkebyPrizeDistributionDrawId = 0
   try {
-    const { drawId } = await prizeDistributionHistoryRinkeby.getNewestPrizeDistribution()
+    const { drawId } = await prizeDistributionBufferRinkeby.getNewestPrizeDistribution()
     lastRinkebyPrizeDistributionDrawId = drawId
   } catch (e) {
   }
@@ -162,13 +73,14 @@ const {
   if (lastRinkebyPrizeDistributionDrawId < newestDraw.drawId && rinkebyTimelockElapsed) {
     // get the draw
     const drawId = lastRinkebyPrizeDistributionDrawId + 1
-    const draw = await drawHistoryRinkeby.getDraw(drawId)
+    const draw = await drawBufferRinkeby.getDraw(drawId)
 
     const beaconPeriod = draw.beaconPeriodSeconds
+    console.log("beaconPeriod:", beaconPeriod)
 
-    const firstDist = [ethers.utils.parseUnits("0.5", 9),ethers.utils.parseUnits("0.3", 9), ethers.utils.parseUnits("0.2", 9)]
-    let distributions = new Array(16 - firstDist.length).fill(0)
-    distributions = firstDist.concat(distributions)
+    const firstTier = [ethers.utils.parseUnits("0.5", 9),ethers.utils.parseUnits("0.3", 9), ethers.utils.parseUnits("0.2", 9)]
+    let tiers = new Array(16 - firstTier.length).fill(0)
+    tiers = firstTier.concat(tiers)
 
     // compute the draw settings we want
     const bitRange = 3
@@ -176,7 +88,7 @@ const {
     const prizeDistributions = {
       bitRangeSize: bitRange,
       matchCardinality: cardinality,
-      distributions,
+      tiers,
       maxPicksPerUser: 10,
       startTimestampOffset: beaconPeriod,
       prize: ethers.utils.parseEther('100'),
@@ -192,10 +104,7 @@ const {
       draw.drawId,
       {
         ...prizeDistributions,
-        // numberOfPicks: picksRinkeby
-        // Temporary fix to get the machine running
-        // numberOfPicks: ethers.BigNumber.from(ethers.utils.parseEther("1"))
-        numberOfPicks: ethers.BigNumber.from('1000')
+        numberOfPicks: picksRinkeby
       }
     )
 
@@ -213,7 +122,7 @@ const {
 
   let lastMumbaiPrizeDistributionDrawId = 0
   try {
-    const { drawId } = await prizeDistributionHistoryMumbai.getNewestPrizeDistribution()
+    const { drawId } = await prizeDistributionBufferMumbai.getNewestPrizeDistribution()
     lastMumbaiPrizeDistributionDrawId = drawId
   } catch (e) {
   }
@@ -224,8 +133,8 @@ const {
   
   if (lastMumbaiPrizeDistributionDrawId < lastRinkebyPrizeDistributionDrawId && mumbaiTimelockElapsed) {
     const drawId = lastMumbaiPrizeDistributionDrawId + 1
-    const draw = await drawHistoryRinkeby.getDraw(drawId)
-    const prizeDistribution = await prizeDistributionHistoryRinkeby.getPrizeDistribution(drawId)
+    const draw = await drawBufferRinkeby.getDraw(drawId)
+    const prizeDistribution = await prizeDistributionBufferRinkeby.getPrizeDistribution(drawId)
     
     const picksMumbai = await calculatePicks(draw, prizeDistribution, reserveMumbai, reserveRinkeby)
 
