@@ -2,10 +2,11 @@ const ethers = require('ethers')
 const { Relayer } = require('defender-relay-client');
 const { getContracts } = require('./getContracts')
 
-async function calculatePicks(draw, prizeDistributions, reserveToCalculate, otherReserve) {
-  const totalPicks = (2**prizeDistributions.bitRange)**prizeDistributions.cardinality
-  const sampleStartTimestamp = draw.timestamp - prizeDistributions.startTimestampOffset
-  const sampleEndTimestamp = draw.timestamp - prizeDistributions.endTimestampOffset
+async function calculatePicks(draw, prizeDistribution, reserveToCalculate, otherReserve) {
+  
+  const totalPicks = (2**prizeDistribution.bitRangeSize)**prizeDistribution.matchCardinality
+  const sampleStartTimestamp = draw.timestamp - prizeDistribution.startTimestampOffset
+  const sampleEndTimestamp = draw.timestamp - prizeDistribution.endTimestampOffset
   
   const reserveAccumulated = await reserveToCalculate.getReserveAccumulatedBetween(sampleStartTimestamp, sampleEndTimestamp)
 
