@@ -1,33 +1,8 @@
 const ethers = require('ethers')
 const { Relayer } = require('defender-relay-client');
 const { getContracts } = require('./getContracts')
-
-async function calculatePicks(draw, prizeDistributions, reserveToCalculate, otherReserve) {
-  const totalPicks = (2**prizeDistributions.bitRange)**prizeDistributions.cardinality
-  const sampleStartTimestamp = draw.timestamp - prizeDistributions.startTimestampOffset
-  const sampleEndTimestamp = draw.timestamp - prizeDistributions.endTimestampOffset
-  
-  const reserveAccumulated = await reserveToCalculate.getReserveAccumulatedBetween(sampleStartTimestamp, sampleEndTimestamp)
-
-  console.log(`${reserveToCalculate.address} reserveAccumulated ${ethers.utils.formatEther(reserveAccumulated)}`)
-
-  const otherReserveAccumulated = await otherReserve.getReserveAccumulatedBetween(sampleStartTimestamp, sampleEndTimestamp)
-
-  console.log(`${otherReserve.address} otherReserveAccumulated ${ethers.utils.formatEther(otherReserveAccumulated)}`)
-
-  let numberOfPicks
-  if (reserveAccumulated.gt('0')) {
-    console.log(`reserveAccumulated gt 0 ..`)
-
-    numberOfPicks = reserveAccumulated.mul(totalPicks).div(otherReserveAccumulated.add(reserveAccumulated))
-  } else {
-    console.log(`calculatePicks setting numberOfPicks: 0`)
-    numberOfPicks = ethers.BigNumber.from('0')
-  }
-  console.log(`returning numberOfPicks ${Math.floor(numberOfPicks)}`)
-  return Math.floor(numberOfPicks)
-}
-
+const { computePrizeDistribution } = require('./computePrizeDistribution')
+const debug = require('debug')('pt:handler')
 
 async function handler(event) {
   const rinkebyRelayer = new Relayer(event);
@@ -38,17 +13,20 @@ async function handler(event) {
   } = event.secrets;
   const mumbaiRelayer = new Relayer({apiKey: mumbaiRelayerApiKey, apiSecret: mumbaiRelayerSecret})
 
-const {
-  reserveRinkeby,
-  reserveMumbai,
-  drawBufferRinkeby,
-  prizeDistributionBufferRinkeby,
-  prizeDistributionBufferMumbai,
-  drawCalculatorTimelockRinkeby,
-  drawCalculatorTimelockMumbai,
-  l1TimelockTriggerRinkeby,
-  l2TimelockTriggerMumbai
-} = getContracts(infuraApiKey)
+  const {
+    reserveRinkeby,
+    reserveMumbai,
+    drawBufferRinkeby,
+    prizeDistributionBufferRinkeby,
+    prizeDistributionBufferMumbai,
+    drawCalculatorTimelockRinkeby,
+    drawCalculatorTimelockMumbai,
+    l1TimelockTriggerRinkeby,
+    l2TimelockTriggerMumbai,
+    ticketMumbai,
+    ticketRinkeby,
+    prizeTierHistoryRinkeby
+  } = getContracts(infuraApiKey)
 
   let newestDraw
   try {
@@ -58,7 +36,16 @@ const {
     console.log("Nope.  Nothing yet.")
     return
   }
+
+  const totalSupplyTickets = (await ticketMumbai.totalSupply()).add(await ticketRinkeby.totalSupply())
+  const decimals = await ticketMumbai.decimals()
   
+  debug(`Total supply of tickets: ${ethers.utils.formatUnits(totalSupplyTickets, decimals)}`)
+  
+
+
+  /// Rinkeby Prize Distribution (L1 Trigger)
+
   let lastRinkebyPrizeDistributionDrawId = 0
   try {
     const { drawId } = await prizeDistributionBufferRinkeby.getNewestPrizeDistribution()
@@ -71,42 +58,19 @@ const {
 
   // If the prize distribution hasn't propagated and we're allowed to push
   if (lastRinkebyPrizeDistributionDrawId < newestDraw.drawId && rinkebyTimelockElapsed) {
-    // get the draw
     const drawId = lastRinkebyPrizeDistributionDrawId + 1
     const draw = await drawBufferRinkeby.getDraw(drawId)
 
-    const beaconPeriod = draw.beaconPeriodSeconds
-    console.log("beaconPeriod:", beaconPeriod)
-
-    const firstTier = [ethers.utils.parseUnits("0.5", 9),ethers.utils.parseUnits("0.3", 9), ethers.utils.parseUnits("0.2", 9)]
-    let tiers = new Array(16 - firstTier.length).fill(0)
-    tiers = firstTier.concat(tiers)
-
-    // compute the draw settings we want
-    const bitRange = 3
-    const cardinality = 5
-    const prizeDistributions = {
-      bitRangeSize: bitRange,
-      matchCardinality: cardinality,
-      tiers,
-      maxPicksPerUser: 10,
-      startTimestampOffset: beaconPeriod,
-      prize: ethers.utils.parseEther('100'),
-      endTimestampOffset: Math.floor(beaconPeriod*0.005) // basically equivalent to (one hour / week)
-    }
-
-    // calculate the fraction of picks based on reserve capture
-    const picksRinkeby = await calculatePicks(draw, prizeDistributions, reserveRinkeby, reserveMumbai)
-
-    console.log(`Rinkeby draw ${drawId} picks is ${picksRinkeby}`)
-
-    const txData = await l1TimelockTriggerRinkeby.populateTransaction.push(
-      draw.drawId,
-      {
-        ...prizeDistributions,
-        numberOfPicks: picksRinkeby
-      }
+    const prizeDistribution = await computePrizeDistribution(
+      draw,
+      prizeTierHistoryRinkeby,
+      reserveRinkeby,
+      reserveMumbai,
+      totalSupplyTickets,
+      decimals
     )
+    
+    const txData = await l1TimelockTriggerRinkeby.populateTransaction.push(draw.drawId, prizeDistribution)
 
     console.log(`Pushing rinkeby prize distrubtion for draw ${drawId}...`)
 
@@ -120,6 +84,10 @@ const {
     console.log(`Propagated prize distribution for draw ${draw.drawId} to Rinkeby: `, tx)
   }
 
+
+
+  /// Mumbai Prize Distribution (L2 Trigger)
+
   let lastMumbaiPrizeDistributionDrawId = 0
   try {
     const { drawId } = await prizeDistributionBufferMumbai.getNewestPrizeDistribution()
@@ -131,22 +99,20 @@ const {
 
   const mumbaiTimelockElapsed = await drawCalculatorTimelockMumbai.hasElapsed()
   
-  if (lastMumbaiPrizeDistributionDrawId < lastRinkebyPrizeDistributionDrawId && mumbaiTimelockElapsed) {
+  if (lastMumbaiPrizeDistributionDrawId < newestDraw.drawId && mumbaiTimelockElapsed) {
     const drawId = lastMumbaiPrizeDistributionDrawId + 1
     const draw = await drawBufferRinkeby.getDraw(drawId)
-    const prizeDistribution = await prizeDistributionBufferRinkeby.getPrizeDistribution(drawId)
-    
-    const picksMumbai = await calculatePicks(draw, prizeDistribution, reserveMumbai, reserveRinkeby)
 
-    console.log(`Mumbai draw ${drawId} has ${picksMumbai} picks`)
-
-    const txData = await l2TimelockTriggerMumbai.populateTransaction.push(
+    const prizeDistribution = await computePrizeDistribution(
       draw,
-      {
-        ...prizeDistribution,
-        numberOfPicks: picksMumbai
-      }
+      prizeTierHistoryRinkeby,
+      reserveMumbai,
+      reserveRinkeby,
+      totalSupplyTickets,
+      decimals
     )
+
+    const txData = await l2TimelockTriggerMumbai.populateTransaction.push(draw, prizeDistribution)
 
     console.log(`Pushing draw ${drawId} to mumbai...`)
     

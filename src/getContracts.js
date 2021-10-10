@@ -20,6 +20,8 @@ const PrizeDistributorMumbai = require('@pooltogether/v4-testnet/deployments/mum
 const ReserveRinkeby = require('@pooltogether/v4-testnet/deployments/rinkeby/Reserve.json')
 const ReserveMumbai = require('@pooltogether/v4-testnet/deployments/mumbai/Reserve.json')
 
+const PrizeTierHistoryRinkeby = require('@pooltogether/v4-testnet/deployments/rinkeby/PrizeTierHistory.json')
+
 function getContracts(infuraApiKey) {
   // first let's check the beacon
   const ethereumProvider = new ethers.providers.InfuraProvider('rinkeby', infuraApiKey)
@@ -45,6 +47,8 @@ function getContracts(infuraApiKey) {
   const l1TimelockTriggerRinkeby = new ethers.Contract(L1TimelockTriggerRinkeby.address, L1TimelockTriggerRinkeby.abi, ethereumProvider)
   const l2TimelockTriggerMumbai = new ethers.Contract(L2TimelockTriggerMumbai.address, L2TimelockTriggerMumbai.abi, polygonProvider)
 
+  const prizeTierHistoryRinkeby = new ethers.Contract(PrizeTierHistoryRinkeby.address, PrizeTierHistoryRinkeby.abi, ethereumProvider)
+
   return {
     ethereumProvider,
     polygonProvider,
@@ -61,6 +65,7 @@ function getContracts(infuraApiKey) {
     prizeDistributorMumbai,
     l1TimelockTriggerRinkeby,
     l2TimelockTriggerMumbai,
+    prizeTierHistoryRinkeby
   }
 }
 
