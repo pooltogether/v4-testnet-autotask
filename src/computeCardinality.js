@@ -3,7 +3,7 @@ const { utils } = require('ethers')
 function computeCardinality(
     bitRangeSize,
     totalSupply,
-    totalSupplyDecimals = 18
+    totalSupplyDecimals
 ) {
     const range = 2**bitRangeSize
 
