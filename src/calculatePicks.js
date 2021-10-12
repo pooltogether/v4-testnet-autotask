@@ -1,10 +1,21 @@
 const ethers = require('ethers')
 
+const debug = require('debug')('pt:calculatePicks')
+
 async function calculatePicks(bitRange, cardinality, startTime, endTime, reserveToCalculate, otherReserve) {
+
+    debug(`start time: ${startTime}, end time: ${endTime}`)
+    
     const totalPicks = (2**bitRange)**cardinality
     const reserveAccumulated = await reserveToCalculate.getReserveAccumulatedBetween(startTime, endTime)
+
+    debug(`Reserve contract ${reserveToCalculate.address} accumulated: ${reserveAccumulated.toString()}`)
+
     // console.log(`${reserveToCalculate.address} reserveAccumulated ${ethers.utils.formatEther(reserveAccumulated)}`)
     const otherReserveAccumulated = await otherReserve.getReserveAccumulatedBetween(startTime, endTime)
+
+    debug(`Other reserve accumulated: ${otherReserveAccumulated.toString()}`)
+
     // console.log(`${otherReserve.address} otherReserveAccumulated ${ethers.utils.formatEther(otherReserveAccumulated)}`)
     let numberOfPicks
     if (reserveAccumulated.gt('0')) {

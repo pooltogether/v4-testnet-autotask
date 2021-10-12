@@ -26,7 +26,7 @@ async function computePrizeDistribution(
 
     debug('computing number of picks...')
 
-    const numberOfPicks = await calculatePicks(prizeTier.bitRangeSize, matchCardinality, beaconPeriod - startTimestampOffset, beaconPeriod - endTimestampOffset, reserveToCalculate, otherReserve)
+    const numberOfPicks = await calculatePicks(prizeTier.bitRangeSize, matchCardinality, draw.timestamp - startTimestampOffset, draw.timestamp - endTimestampOffset, reserveToCalculate, otherReserve)
 
     debug(`number of picks is ${numberOfPicks}`)
 
