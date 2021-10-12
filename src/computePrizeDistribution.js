@@ -16,7 +16,7 @@ async function computePrizeDistribution(
 
     const beaconPeriod = draw.beaconPeriodSeconds
     const startTimestampOffset = beaconPeriod
-    const endTimestampOffset = 300 // say five minutes of offset.  enough for clock drift?
+    const endTimestampOffset = 30 // seconds of offset.  enough for clock drift between polygon and ethereum?
 
     debug('computing cardinality...')
 

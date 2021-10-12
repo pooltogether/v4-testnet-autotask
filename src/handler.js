@@ -37,6 +37,8 @@ async function handler(event) {
     return
   }
 
+  console.log(`Newest draw id is ${newestDraw.drawId}`)
+
   const totalSupplyTickets = (await ticketMumbai.totalSupply()).add(await ticketRinkeby.totalSupply())
   const decimals = await ticketMumbai.decimals()
   
