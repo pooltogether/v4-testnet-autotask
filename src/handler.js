@@ -14,8 +14,6 @@ async function handler(event) {
   const mumbaiRelayer = new Relayer({apiKey: mumbaiRelayerApiKey, apiSecret: mumbaiRelayerSecret})
 
   const {
-    reserveRinkeby,
-    reserveMumbai,
     drawBufferRinkeby,
     prizeDistributionBufferRinkeby,
     prizeDistributionBufferMumbai,
@@ -39,13 +37,6 @@ async function handler(event) {
 
   console.log(`Newest draw id is ${newestDraw.drawId}`)
 
-  const totalSupplyTickets = (await ticketMumbai.totalSupply()).add(await ticketRinkeby.totalSupply())
-  const decimals = await ticketMumbai.decimals()
-  
-  debug(`Total supply of tickets: ${ethers.utils.formatUnits(totalSupplyTickets, decimals)}`)
-  
-
-
   /// Rinkeby Prize Distribution (L1 Trigger)
 
   let lastRinkebyPrizeDistributionDrawId = 0
@@ -66,10 +57,8 @@ async function handler(event) {
     const prizeDistribution = await computePrizeDistribution(
       draw,
       prizeTierHistoryRinkeby,
-      reserveRinkeby,
-      reserveMumbai,
-      totalSupplyTickets,
-      decimals
+      ticketRinkeby,
+      ticketMumbai
     )
     
     const txData = await l1TimelockTriggerRinkeby.populateTransaction.push(draw.drawId, prizeDistribution)
@@ -108,10 +97,8 @@ async function handler(event) {
     const prizeDistribution = await computePrizeDistribution(
       draw,
       prizeTierHistoryRinkeby,
-      reserveMumbai,
-      reserveRinkeby,
-      totalSupplyTickets,
-      decimals
+      ticketMumbai,
+      ticketRinkeby
     )
 
     const txData = await l2TimelockTriggerMumbai.populateTransaction.push(draw, prizeDistribution)
