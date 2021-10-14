@@ -23,8 +23,6 @@ async function computePrizeDistribution(
     const startTime = draw.timestamp - startTimestampOffset
     const endTime = draw.timestamp - endTimestampOffset
 
-    debug('computing cardinality...')
-
     const ticketAverage = await ticketsToCalculate.getAverageTotalSuppliesBetween([startTime], [endTime])
     const otherTicketAverage = await otherTickets.getAverageTotalSuppliesBetween([startTime], [endTime])
 
@@ -37,9 +35,10 @@ async function computePrizeDistribution(
     debug(`total supply (combined): ${ethers.utils.formatUnits(combinedTotalSupply, decimals)}`)
     debug(`total number of picks: ${(2**prizeTier.bitRangeSize)**matchCardinality}`)
 
-    debug('computing number of picks...')
-
-    const numberOfPicks = await utils.calculatePicks(prizeTier.bitRangeSize, matchCardinality, startTime, endTime, ticketsToCalculate, otherTickets)
+    let numberOfPicks = ethers.BigNumber.from('0')
+    if (combinedTotalSupply.gt('0')) {
+        numberOfPicks = await utils.calculatePicks(prizeTier.bitRangeSize, matchCardinality, startTime, endTime, ticketsToCalculate, otherTickets)
+    }
 
     debug(`number of picks is ${numberOfPicks}`)
 
@@ -51,8 +50,11 @@ async function computePrizeDistribution(
       numberOfPicks,
       startTimestampOffset,
       prize: prizeTier.prize,
-      endTimestampOffset
+      endTimestampOffset,
+      expiryDuration: prizeTier.validityDuration
     }
+
+    debug(`prizeDistribution: `, prizeDistribution)
 
     return prizeDistribution
 }

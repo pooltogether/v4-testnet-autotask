@@ -61,7 +61,7 @@ async function handler(event) {
       ticketMumbai
     )
     
-    const txData = await l1TimelockTriggerRinkeby.populateTransaction.push(draw.drawId, prizeDistribution)
+    const txData = await l1TimelockTriggerRinkeby.populateTransaction.push(draw, prizeDistribution)
 
     console.log(`Pushing rinkeby prize distrubtion for draw ${drawId}...`)
 
