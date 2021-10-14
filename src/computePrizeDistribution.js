@@ -16,7 +16,9 @@ async function computePrizeDistribution(
 
     const beaconPeriod = draw.beaconPeriodSeconds
     const startTimestampOffset = beaconPeriod
-    const endTimestampOffset = 30 // seconds of offset.  enough for clock drift between polygon and ethereum?
+    const endTimestampOffset = prizeTier.endTimestampOffset
+
+    debug(prizeTier)
 
     const decimals = await ticketsToCalculate.decimals()
 
